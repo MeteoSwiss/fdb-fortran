@@ -42,71 +42,14 @@ program test_fdb
    LOOP: DO WHILE (iret /= CODES_END_OF_FILE)
 
       is_missing = 0;
-      call codes_is_missing(igrib, 'generatingProcessIdentifier', is_missing);
-      if (is_missing /= 1) then
-         ! key value is not missing so get as an integer
-         call codes_get(igrib, 'generatingProcessIdentifier', generatingProcessIdentifier_str)
-         write (*, *) 'generatingProcessIdentifier=', generatingProcessIdentifier_str
-      else
-         write (*, *) 'generatingProcessIdentifier is missing'
-      end if
 
-      call codes_is_missing(igrib, 'productionStatusOfProcessedData', is_missing);
-      if (is_missing /= 1) then
-         ! key value is not missing so get as an integer
-         call codes_get(igrib, 'productionStatusOfProcessedData', productionStatusOfProcessedData_str)
-         write (*, *) 'productionStatusOfProcessedData=', productionStatusOfProcessedData_str
-      else
-         write (*, *) 'productionStatusOfProcessedData is missing'
-      end if
-
-      call codes_is_missing(igrib, 'dateTime', is_missing);
-      if (is_missing /= 1) then
-         ! key value is not missing so get as an integer
-         call codes_get(igrib, 'dateTime', dateTime_str)
-         write (*, *) 'dateTime=', dateTime_str
-      else
-         write (*, *) 'dateTime is missing'
-      end if
-
-      call codes_is_missing(igrib, 'typeOfLevel', is_missing);
-      if (is_missing /= 1) then
-         ! key value is not missing so get as an integer
-         call codes_get(igrib, 'typeOfLevel', typeOfLevel_str)
-         write (*, *) 'typeOfLevel=', typeOfLevel_str
-      else
-         write (*, *) 'typeOfLevel is missing'
-      end if
-
-      call codes_is_missing(igrib, 'level', is_missing);
-      if (is_missing /= 1) then
-         ! key value is not missing so get as an integer
-         call codes_get(igrib, 'level', level_int)
-         ! convert int to string
-         write (level_str, "(I4)") level_int
-         level_str=trim(adjustl(level_str))
-         write (*, *) 'level=', level_str
-      else
-         write (*, *) 'level is missing'
-      end if
-
-      call codes_is_missing(igrib, 'parameterNumber', is_missing);
-      if (is_missing /= 1) then
-         ! key value is not missing so get as an integer
-         call codes_get(igrib, 'parameterNumber', parameterNumber_str)
-         write (*, *) 'parameterNumber=', parameterNumber_str
-      else
-         write (*, *) 'parameterNumber is missing'
-      end if
-
-      call codes_is_missing(igrib, 'productDefinitionTemplateNumber', is_missing);
-      if (is_missing /= 1) then
-         ! key value is not missing so get as an integer
-         call codes_get(igrib, 'productDefinitionTemplateNumber', productDefinitionTemplateNumber_str)
-         write (*, *) 'productDefinitionTemplateNumber=', productDefinitionTemplateNumber_str
-      else
-         write (*, *) 'productDefinitionTemplateNumber is missing'
-      end if
+      call get_value_of_key(igrib, 'generatingProcessIdentifier', generatingProcessIdentifier_str) 
+      call get_value_of_key(igrib, 'productionStatusOfProcessedData', productionStatusOfProcessedData_str) 
+      call get_value_of_key(igrib, 'dateTime', dateTime_str) 
+      call get_value_of_key(igrib, 'typeOfLevel', typeOfLevel_str) 
+      call get_value_of_key(igrib, 'parameterNumber', parameterNumber_str) 
+      call get_value_of_key(igrib, 'productDefinitionTemplateNumber', productDefinitionTemplateNumber_str) 
+      call get_value_of_key(igrib, 'level', level_str, level_int) 
 
       ! get the size of the values array
       call codes_get_size(igrib, 'values', numberOfValues)

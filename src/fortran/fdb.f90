@@ -1,5 +1,6 @@
 MODULE fdb
    use, intrinsic :: iso_c_binding
+   use eccodes
 
    interface
       integer(kind=c_int) function fdb_key_add(key, param, value) bind(C, name='fdb_key_add')
@@ -42,4 +43,26 @@ MODULE fdb
          use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
       end function fdb_initialise
    end interface
+
+   contains
+   SUBROUTINE get_value_of_key(igrib, keyname, keyname_str, keyname_int)
+      character(len=*), INTENT(IN)         :: keyname
+      character(len=128), INTENT(INOUT)    :: keyname_str
+      integer, INTENT(INOUT), OPTIONAL        :: keyname_int
+      call codes_is_missing(igrib, trim(keyname), is_missing);
+      if (is_missing /= 1) then
+         ! key value is not missing so get values
+         if (present(keyname_int)) then
+            call codes_get_int(igrib, keyname, keyname_int)
+            write (keyname_str, "(I4)") keyname_int
+            keyname_str=trim(adjustl(keyname_str))
+         else
+            call codes_get(igrib, keyname, keyname_str)
+         end if
+         write (*, *) keyname, '=', keyname_str
+      else
+         write (*, *) keyname, ' is missing from data.'
+      end if
+   END SUBROUTINE
+
 end module fdb
