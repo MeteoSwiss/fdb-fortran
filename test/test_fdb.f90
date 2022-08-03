@@ -18,16 +18,13 @@ program test_fdb
    integer :: i, ifile, igrib, iret
    character(len=10)                  ::  open_mode = 'r'
    character(kind=c_char), dimension(128) :: generatingProcessIdentifier, productionStatusOfProcessedData, dateTime, typeOfLevel, &
-   &                    param, parameterNumber, level, productDefinitionTemplateNumber
+   &                    parameterNumber, level, productDefinitionTemplateNumber
    character(len=128) :: generatingProcessIdentifier_str, productionStatusOfProcessedData_str, dateTime_str, typeOfLevel_str, &
-   &                    param_str, parameterNumber_str, level_str, productDefinitionTemplateNumber_str
+   &                    parameterNumber_str, level_str, productDefinitionTemplateNumber_str
 
    integer:: level_int
    integer :: numberOfValues
    real, dimension(:), target, allocatable ::  values
-   character(kind=c_char, len=:), pointer ::  values_str
-   real  ::  value
-   character(len=32) ::  value_str
    type(c_ptr) :: values_ptr
    character(len=128) :: keyname_str
    character(kind=c_char), dimension(128) :: keyname
