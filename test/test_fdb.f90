@@ -2,22 +2,14 @@ program test_fdb
    use fdb
    use eccodes
 
-   integer(c_int) :: res
-   type(c_ptr) :: fdb_handle
-   type(c_ptr) :: key
-   integer :: i, ifile, igrib, iret
-   character(len=10)                  ::  open_mode = 'r'
-   character(kind=c_char), dimension(128) :: generatingProcessIdentifier, productionStatusOfProcessedData, dateTime, typeOfLevel, &
-   &                    parameterNumber, level, productDefinitionTemplateNumber
-   character(len=128) :: generatingProcessIdentifier_str, productionStatusOfProcessedData_str, dateTime_str, typeOfLevel_str, &
-   &                    parameterNumber_str, level_str, productDefinitionTemplateNumber_str
-
-   integer:: level_int
-   integer :: numberOfValues
-   real, dimension(:), target, allocatable ::  values
-   type(c_ptr) :: values_ptr
-   character(len=128) :: keyname_str
-   character(kind=c_char), dimension(128) :: keyname
+   integer(c_int)                            :: res
+   type(c_ptr)                               :: fdb_handle
+   type(c_ptr)                               :: key
+   integer                                   :: i, ifile, igrib, iret
+   character(len=10)                         :: open_mode = 'r'
+   integer                                   :: numberOfValues
+   real, dimension(:), target, allocatable   :: values
+   type(c_ptr)                               :: values_ptr
 
    res = fdb_initialise()
 
@@ -33,15 +25,13 @@ program test_fdb
 
       is_missing = 0;
 
-      call add_key(key, igrib, 'generatingProcessIdentifier', generatingProcessIdentifier_str, keyname, generatingProcessIdentifier)
-      call add_key(key, igrib, 'productionStatusOfProcessedData', productionStatusOfProcessedData_str, keyname, &
-         &productionStatusOfProcessedData)
-      call add_key(key, igrib, 'dateTime', dateTime_str, keyname, dateTime)
-      call add_key(key, igrib, 'typeOfLevel', typeOfLevel_str, keyname, typeOfLevel)
-      call add_key(key, igrib, 'parameterNumber', parameterNumber_str, keyname, parameterNumber)
-      call add_key(key, igrib, 'productDefinitionTemplateNumber', productDefinitionTemplateNumber_str, keyname, &
-         &productDefinitionTemplateNumber)
-      call add_key(key, igrib, 'level', level_str, keyname, level, level_int)
+      call add_key(key, igrib, 'generatingProcessIdentifier')
+      call add_key(key, igrib, 'productionStatusOfProcessedData')
+      call add_key(key, igrib, 'dateTime')
+      call add_key(key, igrib, 'typeOfLevel')
+      call add_key(key, igrib, 'parameterNumber')
+      call add_key(key, igrib, 'productDefinitionTemplateNumber')
+      call add_key(key, igrib, 'level', 'integer')
 
 
       ! get the size of the values array
@@ -51,6 +41,7 @@ program test_fdb
       allocate (values(numberOfValues), stat=iret)
       ! get data values
       call codes_get(igrib, 'values', values)
+      write (*, *) 'values=', values(0:20)
       values_ptr = transfer(c_loc(values), values_ptr)
 
       ret = fdb_archive(fdb_handle, key, values_ptr, numberOfValues);

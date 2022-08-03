@@ -45,21 +45,21 @@ MODULE fdb
    end interface
 
    contains
-   SUBROUTINE get_value_of_key(igrib, keyname, keyname_str, keyname_int)
+   SUBROUTINE get_value_of_key(igrib, keyname, keyvalue_str, keyvalue_int)
       character(len=*), INTENT(IN)         :: keyname
-      character(len=128), INTENT(INOUT)    :: keyname_str
-      integer, INTENT(INOUT), OPTIONAL     :: keyname_int
+      character(len=128), INTENT(OUT)    :: keyvalue_str
+      integer, INTENT(INOUT), OPTIONAL     :: keyvalue_int
       call codes_is_missing(igrib, trim(keyname), is_missing);
       if (is_missing /= 1) then
          ! key value is not missing so get values
-         if (present(keyname_int)) then
-            call codes_get_int(igrib, keyname, keyname_int)
-            write (keyname_str, "(I4)") keyname_int
-            keyname_str=trim(adjustl(keyname_str))
+         if (present(keyvalue_int)) then
+            call codes_get_int(igrib, keyname, keyvalue_int)
+            write (keyvalue_str, "(I4)") keyvalue_int
+            keyvalue_str=trim(adjustl(keyvalue_str))
          else
-            call codes_get(igrib, keyname, keyname_str)
+            call codes_get(igrib, keyname, keyvalue_str)
          end if
-         write (*, *) keyname, '=', keyname_str
+         write (*, *) keyname, '=', keyvalue_str
       else
          write (*, *) keyname, ' is missing from data.'
       end if
@@ -75,17 +75,22 @@ MODULE fdb
       a(LEN(s)+1) = char(0)
    END SUBROUTINE copy_s2a
    
-   SUBROUTINE add_key(key, igrib, keyname_str, keyvalue_str, keyvalue_int)  
+   SUBROUTINE add_key(key, igrib, keyname_str, type)  
       use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
-      type(c_ptr), INTENT(INOUT)                          :: key
-      character(len=*), INTENT(IN)                        :: keyname_str
-      character(len=128), INTENT(INOUT)                   :: keyvalue_str
-      integer, INTENT(INOUT), OPTIONAL                    :: keyvalue_int
+      type(c_ptr), INTENT(INOUT)                  :: key
+      character(len=*), INTENT(IN)                :: keyname_str
+      character(len=*), INTENT(IN), OPTIONAL      :: type
       ! Local vars
-      character(kind=c_char), dimension(128)              :: keyname
-      character(kind=c_char), dimension(128)              :: keyvalue
+      character(kind=c_char), dimension(128)      :: keyname
+      character(kind=c_char), dimension(128)      :: keyvalue
+      character(len=128)                          :: keyvalue_str
+      integer                                     :: keyvalue_int
 
-      call get_value_of_key(igrib, trim(keyname_str), keyvalue_str, keyvalue_int) 
+      if (type == 'integer') then
+         call get_value_of_key(igrib, trim(keyname_str), keyvalue_str, keyvalue_int) 
+      else
+         call get_value_of_key(igrib, trim(keyname_str), keyvalue_str) 
+      end if
       call copy_s2a(keyvalue, trim(keyvalue_str))
       call copy_s2a(keyname, trim(keyname_str))
       res = fdb_key_add(key, keyname, keyvalue)
