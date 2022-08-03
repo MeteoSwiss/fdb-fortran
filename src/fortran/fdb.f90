@@ -75,15 +75,15 @@ MODULE fdb
       a(LEN(s)+1) = char(0)
    END SUBROUTINE copy_s2a
    
-   SUBROUTINE add_key(key, igrib, keyname_str, keyvalue_str, keyname, keyvalue, keyvalue_int)  
+   SUBROUTINE add_key(key, igrib, keyname_str, keyvalue_str, keyvalue_int)  
       use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
       type(c_ptr), INTENT(INOUT)                          :: key
-      ! integer, INTENT(IN)                               :: igrib
       character(len=*), INTENT(IN)                        :: keyname_str
       character(len=128), INTENT(INOUT)                   :: keyvalue_str
       integer, INTENT(INOUT), OPTIONAL                    :: keyvalue_int
-      character(kind=c_char), dimension(128) ,INTENT(OUT) :: keyname
-      character(kind=c_char), dimension(128) ,INTENT(OUT) :: keyvalue
+      ! Local vars
+      character(kind=c_char), dimension(128)              :: keyname
+      character(kind=c_char), dimension(128)              :: keyvalue
 
       call get_value_of_key(igrib, trim(keyname_str), keyvalue_str, keyvalue_int) 
       call copy_s2a(keyvalue, trim(keyvalue_str))
