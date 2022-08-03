@@ -48,7 +48,7 @@ MODULE fdb
    SUBROUTINE get_value_of_key(igrib, keyname, keyname_str, keyname_int)
       character(len=*), INTENT(IN)         :: keyname
       character(len=128), INTENT(INOUT)    :: keyname_str
-      integer, INTENT(INOUT), OPTIONAL        :: keyname_int
+      integer, INTENT(INOUT), OPTIONAL     :: keyname_int
       call codes_is_missing(igrib, trim(keyname), is_missing);
       if (is_missing /= 1) then
          ! key value is not missing so get values
@@ -64,5 +64,31 @@ MODULE fdb
          write (*, *) keyname, ' is missing from data.'
       end if
    END SUBROUTINE
+
+   SUBROUTINE copy_s2a(a,s)   ! copy s(1:Clen(s)) to char array
+      CHARACTER(*),INTENT(IN) :: s
+      CHARACTER :: a(LEN(s))
+      INTEGER :: i
+      DO i = 1,LEN(s)
+         a(i) = s(i:i)
+      END DO
+      a(LEN(s)+1) = char(0)
+   END SUBROUTINE copy_s2a
+   
+   SUBROUTINE add_key(key, igrib, keyname_str, keyvalue_str, keyname, keyvalue, keyvalue_int)  
+      use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
+      type(c_ptr), INTENT(INOUT)                          :: key
+      ! integer, INTENT(IN)                               :: igrib
+      character(len=*), INTENT(IN)                        :: keyname_str
+      character(len=128), INTENT(INOUT)                   :: keyvalue_str
+      integer, INTENT(INOUT), OPTIONAL                    :: keyvalue_int
+      character(kind=c_char), dimension(128) ,INTENT(OUT) :: keyname
+      character(kind=c_char), dimension(128) ,INTENT(OUT) :: keyvalue
+
+      call get_value_of_key(igrib, trim(keyname_str), keyvalue_str, keyvalue_int) 
+      call copy_s2a(keyvalue, trim(keyvalue_str))
+      call copy_s2a(keyname, trim(keyname_str))
+      res = fdb_key_add(key, keyname, keyvalue)
+   END SUBROUTINE add_key
 
 end module fdb

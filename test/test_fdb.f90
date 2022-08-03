@@ -1,13 +1,3 @@
-SUBROUTINE copy_s2a(a,s)   ! copy s(1:Clen(s)) to char array
-   CHARACTER(*),INTENT(IN) :: s
-   CHARACTER :: a(LEN(s))
-   INTEGER :: i
-   DO i = 1,LEN(s)
-      a(i) = s(i:i)
-   END DO
-   a(LEN(s)+1) = char(0)
-END SUBROUTINE copy_s2a
-
 program test_fdb
    use fdb
    use eccodes
@@ -43,53 +33,20 @@ program test_fdb
 
       is_missing = 0;
 
-      call get_value_of_key(igrib, 'generatingProcessIdentifier', generatingProcessIdentifier_str) 
-      call get_value_of_key(igrib, 'productionStatusOfProcessedData', productionStatusOfProcessedData_str) 
-      call get_value_of_key(igrib, 'dateTime', dateTime_str) 
-      call get_value_of_key(igrib, 'typeOfLevel', typeOfLevel_str) 
-      call get_value_of_key(igrib, 'parameterNumber', parameterNumber_str) 
-      call get_value_of_key(igrib, 'productDefinitionTemplateNumber', productDefinitionTemplateNumber_str) 
-      call get_value_of_key(igrib, 'level', level_str, level_int) 
+      call add_key(key, igrib, 'generatingProcessIdentifier', generatingProcessIdentifier_str, keyname, generatingProcessIdentifier)
+      call add_key(key, igrib, 'productionStatusOfProcessedData', productionStatusOfProcessedData_str, keyname, &
+         &productionStatusOfProcessedData)
+      call add_key(key, igrib, 'dateTime', dateTime_str, keyname, dateTime)
+      call add_key(key, igrib, 'typeOfLevel', typeOfLevel_str, keyname, typeOfLevel)
+      call add_key(key, igrib, 'parameterNumber', parameterNumber_str, keyname, parameterNumber)
+      call add_key(key, igrib, 'productDefinitionTemplateNumber', productDefinitionTemplateNumber_str, keyname, &
+         &productDefinitionTemplateNumber)
+      call add_key(key, igrib, 'level', level_str, keyname, level, level_int)
+
 
       ! get the size of the values array
       call codes_get_size(igrib, 'values', numberOfValues)
       write (*, *) 'numberOfValues=', numberOfValues
-
-      call copy_s2a(generatingProcessIdentifier, trim(generatingProcessIdentifier_str))
-      call copy_s2a(productionStatusOfProcessedData, trim(productionStatusOfProcessedData_str))
-      call copy_s2a(dateTime, trim(dateTime_str))
-      call copy_s2a(typeOfLevel, trim(typeOfLevel_str))
-      call copy_s2a(level, trim(level_str))
-      call copy_s2a(parameterNumber, trim(parameterNumber_str))
-      call copy_s2a(productDefinitionTemplateNumber, trim(productDefinitionTemplateNumber_str))
-
-      keyname_str = "generatingProcessIdentifier"
-      call copy_s2a(keyname, trim(keyname_str))
-      res = fdb_key_add(key, keyname, generatingProcessIdentifier)
-
-      keyname_str = "productionStatusOfProcessedData"
-      call copy_s2a(keyname, trim(keyname_str))
-      res = fdb_key_add(key, keyname, productionStatusOfProcessedData)
-
-      keyname_str = "dateTime"
-      call copy_s2a(keyname, trim(keyname_str))
-      res = fdb_key_add(key, keyname, dateTime)
-
-      keyname_str = "typeOfLevel"
-      call copy_s2a(keyname, trim(keyname_str))
-      res = fdb_key_add(key, keyname, typeOfLevel)
-
-      keyname_str = "level"
-      call copy_s2a(keyname, trim(keyname_str))
-      res = fdb_key_add(key, keyname, level)
-
-      keyname_str = "parameterNumber"
-      call copy_s2a(keyname, trim(keyname_str))
-      res = fdb_key_add(key, keyname, parameterNumber)
-
-      keyname_str = "productDefinitionTemplateNumber"
-      call copy_s2a(keyname, trim(keyname_str))
-      res = fdb_key_add(key, keyname, productDefinitionTemplateNumber)
 
       allocate (values(numberOfValues), stat=iret)
       ! get data values
@@ -104,5 +61,5 @@ program test_fdb
 
    call codes_close_file(ifile)
 
-   write(*,*) "end"
+   write(*,*) 'end'
 end program
