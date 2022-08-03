@@ -34,6 +34,12 @@ MODULE fdb
          type(c_ptr), intent(in), value :: key
          type(c_ptr), intent(in), value :: data
          integer(kind=c_int), intent(in), value :: length
-      end function
+      end function fdb_archive
+   end interface
+
+   interface
+      integer(c_int) function fdb_initialise() bind(C, name='fdb_initialise')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
+      end function fdb_initialise
    end interface
 end module fdb

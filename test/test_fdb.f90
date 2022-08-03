@@ -8,7 +8,6 @@ SUBROUTINE copy_s2a(a,s)   ! copy s(1:Clen(s)) to char array
    a(LEN(s)+1) = char(0)
 END SUBROUTINE copy_s2a
 
-
 program test_fdb
    use fdb
    use eccodes
@@ -19,22 +18,27 @@ program test_fdb
    integer :: i, ifile, igrib, iret
    character(len=10)                  ::  open_mode = 'r'
    character(kind=c_char), dimension(128) :: generatingProcessIdentifier, productionStatusOfProcessedData, dateTime, typeOfLevel, &
-   &                    parameterNumber, level, productDefinitionTemplateNumber
+   &                    param, parameterNumber, level, productDefinitionTemplateNumber
    character(len=128) :: generatingProcessIdentifier_str, productionStatusOfProcessedData_str, dateTime_str, typeOfLevel_str, &
-   &                    parameterNumber_str, level_str, productDefinitionTemplateNumber_str
+   &                    param_str, parameterNumber_str, level_str, productDefinitionTemplateNumber_str
 
    integer:: level_int
    integer :: numberOfValues
-   real, dimension(:), allocatable    ::  values
+   real, dimension(:), target, allocatable ::  values
+   character(kind=c_char, len=:), pointer ::  values_str
+   real  ::  value
+   character(len=32) ::  value_str
    type(c_ptr) :: values_ptr
    character(len=128) :: keyname_str
    character(kind=c_char), dimension(128) :: keyname
+
+   res = fdb_initialise()
 
    res = fdb_new_handle(fdb_handle)
 
    res = fdb_new_key(key)
 
-   call codes_open_file(ifile, '/code/rz+/data/lfff00000000', open_mode)
+   call codes_open_file(ifile, '/home/vcherkas/fdb-poc/build/fdb/fdb-fortran/lfff00000000c', open_mode)
 
    call codes_grib_new_from_file(ifile, igrib, iret)
 
@@ -81,11 +85,10 @@ program test_fdb
       if (is_missing /= 1) then
          ! key value is not missing so get as an integer
          call codes_get(igrib, 'level', level_int)
-         write (*, *) 'level=', level_int
-         level_str = char(level_int)
-         !write (level_str, "I4") level_int
-         ! TODO properly get the level
-         write (*, *) 'level_char=', level_str
+         ! convert int to string
+         write (level_str, "(I4)") level_int
+         level_str=trim(adjustl(level_str))
+         write (*, *) 'level=', level_str
       else
          write (*, *) 'level is missing'
       end if
@@ -122,44 +125,38 @@ program test_fdb
 
       keyname_str = "generatingProcessIdentifier"
       call copy_s2a(keyname, trim(keyname_str))
-
       res = fdb_key_add(key, keyname, generatingProcessIdentifier)
+
       keyname_str = "productionStatusOfProcessedData"
       call copy_s2a(keyname, trim(keyname_str))
-
       res = fdb_key_add(key, keyname, productionStatusOfProcessedData)
+
       keyname_str = "dateTime"
       call copy_s2a(keyname, trim(keyname_str))
-
       res = fdb_key_add(key, keyname, dateTime)
+
       keyname_str = "typeOfLevel"
       call copy_s2a(keyname, trim(keyname_str))
-
       res = fdb_key_add(key, keyname, typeOfLevel)
+
       keyname_str = "level"
       call copy_s2a(keyname, trim(keyname_str))
-
       res = fdb_key_add(key, keyname, level)
+
       keyname_str = "parameterNumber"
       call copy_s2a(keyname, trim(keyname_str))
-
       res = fdb_key_add(key, keyname, parameterNumber)
+
       keyname_str = "productDefinitionTemplateNumber"
       call copy_s2a(keyname, trim(keyname_str))
-
       res = fdb_key_add(key, keyname, productDefinitionTemplateNumber)
 
       allocate (values(numberOfValues), stat=iret)
       ! get data values
       call codes_get(igrib, 'values', values)
+      values_ptr = transfer(c_loc(values), values_ptr)
 
-!      values_ptr = c_loc(values)
-      ! TODO missing
-      ! 1. gettting properly level
-      ! 2. getting properly values_ptr
-      ! 3. fixin the fdb instance config
       ret = fdb_archive(fdb_handle, key, values_ptr, numberOfValues);
-
 
       call codes_release(igrib)
       call codes_grib_new_from_file(ifile, igrib, iret)
