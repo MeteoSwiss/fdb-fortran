@@ -1,4 +1,4 @@
-program test_fdb
+program test_fdb_archive
    use fdb
    use eccodes
 

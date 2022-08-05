@@ -10,6 +10,10 @@ find_package(eckit REQUIRED)
 find_package(metkit REQUIRED)
 add_subdirectory(src)
 
-add_executable(test_fdb test/test_fdb.f90)
-target_link_libraries(test_fdb fdbf eccodes_f90)
-target_include_directories(test_fdb PUBLIC ${CMAKE_BINARY_DIR}/modules)
+add_executable(test_fdb_archive test/test_fdb_archive.f90)
+target_link_libraries(test_fdb_archive fdbf eccodes_f90)
+target_include_directories(test_fdb_archive PUBLIC ${CMAKE_BINARY_DIR}/modules)
+
+add_executable(test_fdb_retrieve test/test_fdb_retrieve.f90)
+target_link_libraries(test_fdb_retrieve fdbf eccodes_f90)
+target_include_directories(test_fdb_retrieve PUBLIC ${CMAKE_BINARY_DIR}/modules)
