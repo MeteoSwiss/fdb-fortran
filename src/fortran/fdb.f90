@@ -56,10 +56,10 @@ MODULE fdb
 
    interface
       integer(kind=c_int) function fdb_request_add(req, param, values, numValues) bind(C, name='fdb_request_add')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char, C_LONG
          type(c_ptr), intent(in), value :: req
          character(kind=c_char, len=1), dimension(*), INTENT(in) :: param
-         type(c_ptr), intent(in) :: values(*)
+         type(c_ptr), intent(in) :: values(0:*)
          integer(kind=c_int), INTENT(in), value :: numValues
       end function 
    end interface
@@ -93,8 +93,8 @@ MODULE fdb
          use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char, c_long
          type(c_ptr), intent(in), value :: dr
          type(c_ptr), intent(in), value :: buf
-         integer(kind=c_long), intent(in)       :: count
-         type(c_ptr), intent(in), value :: read
+         integer(kind=c_long), intent(in), value  :: count
+         type(c_ptr), intent(in)        :: read
       end function fdb_datareader_read
    end interface
 
@@ -159,5 +159,45 @@ MODULE fdb
       call copy_s2a(keyname, trim(keyname_str))
       res = fdb_key_add(key, keyname, keyvalue)
    END SUBROUTINE add_key
+
+
+   SUBROUTINE convertValues(numStrings, values_str_array, values_array, values_ptr)
+      use, intrinsic :: iso_c_binding 
+      integer(c_int) , INTENT(IN)              :: numStrings
+      CHARACTER(len=*), INTENT(IN) :: values_str_array(numStrings)
+      CHARACTER(kind=c_char), TARGET , INTENT(INOUT)  :: values_array(32,numStrings)
+      TYPE(C_PTR), INTENT(OUT)                 :: values_ptr(numStrings)
+      integer                                  :: ns, i
+      character(len=32)                        :: value_str
+      character(kind=c_char), dimension(32)    :: value
+      character(len=5)                         :: ns_str
+      DO ns = 1, numStrings
+         ! cehck that values_str_array(ns) is not greater in size than 32, or hard coded value.
+         call copy_s2a(values_array(:,ns), trim(values_str_array(ns)))
+         values_ptr(ns) = C_LOC(values_array(:,ns))
+      END DO
+            
+   END SUBROUTINE
+
+
+   SUBROUTINE fdb_request_add_fortran(req, keyname_str, values_str_array)
+      use, intrinsic :: iso_c_binding 
+      type(c_ptr), INTENT(IN)                        :: req
+      CHARACTER(len=*), INTENT(IN)                   :: keyname_str
+      CHARACTER(len=*), INTENT(IN)                   :: values_str_array(:)
+      CHARACTER(kind=c_char), TARGET, ALLOCATABLE    :: values_array(:,:)
+      TYPE(C_PTR)                                    :: values_ptr(SIZE(values_str_array))
+      integer(c_int)                                 :: numStrings
+      character(kind=c_char), dimension(128)         :: keyname
+
+      numStrings=SIZE(values_str_array)
+      ALLOCATE(values_array(32,numStrings))
+      call convertValues(numStrings, values_str_array, values_array, values_ptr)
+      call copy_s2a(keyname, trim(keyname_str))
+      res = fdb_request_add(req, keyname, values_ptr, numStrings);
+      DEALLOCATE(values_array)
+   END SUBROUTINE
+
+
 
 end module fdb

@@ -16,67 +16,39 @@ program test_fdb_retrieve
    type(c_ptr)                               :: buf
    integer(c_long)                           :: count
    type(c_ptr)                               :: read
-   integer(c_int)                            :: numStrings
 
-   ! character(kind=c_char), dimension(32), target, allocatable   :: values(:)
-   ! type(c_ptr)    :: values_ptr
-
-   integer ::  ns
-   CHARACTER(LEN=100), DIMENSION(1), TARGET            :: values_str_array(0:2)
-   TYPE(C_PTR), DIMENSION(1)                           :: values_ptr(0:2)
-
-   character(kind=c_char), dimension(32)                        :: value
-   character(len=32)                                            :: value_str
+   CHARACTER(len=32)                         :: date_values(2)
+   CHARACTER(len=32)                         :: single_value(1)
 
 
    res = fdb_initialise()
-
    res = fdb_new_handle(fdb_handle)
-
    res = fdb_new_request(req)
 
-   value_str= "202012040900"
-   numStrings=2
-   DO ns = 0, numStrings-1
-      values_str_array(ns) = trim(value_str)//char(0)
-      values_ptr(ns) = C_LOC(values_str_array(ns))
-   END DO
 
-   res = fdb_request_add(req, "datetime", values_ptr, numStrings);
+   date_values(1)="202012040900"
+   date_values(2)="202012041200"
+   call fdb_request_add_fortran(req, "datetime", date_values)
+   call fdb_request_add_fortran(req, "generatingProcessIdentifier", ["121"])
+   call fdb_request_add_fortran(req, "level", ["17"])
+   call fdb_request_add_fortran(req, "parameterNumber", ["6"])
+   call fdb_request_add_fortran(req, "productDefinitionTemplateNumber", ["1"])
+   call fdb_request_add_fortran(req, "productionStatusOfProcessedData", ["2"])
+   call fdb_request_add_fortran(req, "typeOfLevel", ["generalVertical"])
 
+   res = fdb_new_datareader(dr);
+   res = fdb_retrieve(fdb_handle, req, dr)
+   res = fdb_datareader_open(dr, size)
 
-   ! value_str= "121"
-   ! numStrings=1
-   ! values_str_array(:)='empty'
-   ! DO ns = 0, numStrings-1
-   !    values_str_array(ns) = trim(value_str)//char(0)
-   !    values_ptr(ns) = C_LOC(values_str_array(ns))
-   ! END DO
+   count=10000000
 
-   ! res = fdb_request_add(req, "generatingProcessIdentifier", values_ptr, numStrings);
+   res = fdb_datareader_read(dr, grib, count, read)
 
-   ! res = fdb_request_add(req, "level", "31", 1);
-   ! res = fdb_request_add(req, "parameterNumber", "6", 1);
-   ! res = fdb_request_add(req, "productDefinitionTemplateNumber", "1", 1);
-   ! res = fdb_request_add(req, "productionStatusOfProcessedData", "2", 1);
-   ! res = fdb_request_add(req, "typeOfLevel", "generalVertical", 1);
-   
-   write (*, *) 'req=', req
-
-   ! res = fdb_new_datareader(dr);
-
-   ! res = fdb_retrieve(fdb_handle, req, dr)
-
-   ! res = fdb_datareader_open(dr, size)
-
-   ! count=10000000
-
-   ! res = fdb_datareader_read(dr, grib, count, read)
-   ! res = fdb_datareader_tell(dr, read);
+   res = fdb_datareader_tell(dr, read);
 
    ! write (*, *) 'grib=', grib
    ! write (*, *) 'read=', read
 
 
-   write(*,*) 'end'
+   write(*,*) 'end of test_fdb_retrieve'
 end program
