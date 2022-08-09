@@ -6,7 +6,6 @@ MODULE fdb
       integer(kind=c_int) function fdb_key_add(key, param, value) bind(C, name='fdb_key_add')
          use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
          type(c_ptr), intent(in), value :: key
-
          character(kind=c_char, len=1), dimension(*), INTENT(in) :: param
          character(kind=c_char, len=1), dimension(*), INTENT(in) :: value
       end function fdb_key_add
@@ -14,24 +13,21 @@ MODULE fdb
 
    interface
       integer(kind=c_int) function fdb_new_handle(fdb_handle) bind(C, name='fdb_new_handle')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
-
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
          type(c_ptr), intent(inout) :: fdb_handle
       end function fdb_new_handle
    end interface
 
    interface
       integer(c_int) function fdb_new_key(key) bind(C,name='fdb_new_key')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
-
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
          type(c_ptr), intent(inout) :: key
-
       end function fdb_new_key
    end interface
 
    interface
       integer(c_int) function fdb_archive(fdb_handle, key, data, length) bind(C, name='fdb_archive')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
          type(c_ptr), intent(in), value :: fdb_handle
          type(c_ptr), intent(in), value :: key
          type(c_ptr), intent(in), value :: data
@@ -41,22 +37,20 @@ MODULE fdb
 
    interface
       integer(c_int) function fdb_initialise() bind(C, name='fdb_initialise')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
+         use, intrinsic :: iso_c_binding, only : c_int
       end function fdb_initialise
    end interface
 
    interface
       integer(c_int) function fdb_new_request(req) bind(C,name='fdb_new_request')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
-
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
          type(c_ptr), intent(inout) :: req
-
       end function fdb_new_request
    end interface
 
    interface
       integer(kind=c_int) function fdb_request_add(req, param, values, numValues) bind(C, name='fdb_request_add')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char, C_LONG
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
          type(c_ptr), intent(in), value :: req
          character(kind=c_char, len=1), dimension(*), INTENT(in) :: param
          type(c_ptr), intent(in) :: values(0:*)
@@ -66,7 +60,7 @@ MODULE fdb
 
    interface
       integer(kind=c_int) function fdb_retrieve(fdb_handle, req, dr) bind(C, name='fdb_retrieve')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
          type(c_ptr), intent(in), value :: fdb_handle
          type(c_ptr), intent(in), value :: req         
          type(c_ptr), intent(in), value :: dr
@@ -75,19 +69,50 @@ MODULE fdb
 
    interface
       integer(c_int) function fdb_new_datareader(dr) bind(C,name='fdb_new_datareader')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
          type(c_ptr), intent(inout) :: dr
       end function fdb_new_datareader
    end interface
 
    interface
       integer(c_int) function fdb_datareader_open(dr, size) bind(C,name='fdb_datareader_open')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char, c_long
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_long
          type(c_ptr), intent(in), value :: dr
          integer(kind=c_long), intent(inout) :: size
       end function fdb_datareader_open
    end interface
 
+   interface
+      integer(c_int) function fdb_datareader_close(dr) bind(C,name='fdb_datareader_close')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
+         type(c_ptr), intent(in), value      :: dr
+      end function fdb_datareader_close
+   end interface
+
+   interface
+      integer(c_int) function fdb_datareader_tell(dr, pos) bind(C,name='fdb_datareader_tell')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_long
+         type(c_ptr), intent(in), value      :: dr
+         integer(kind=c_long), intent(inout) :: pos
+      end function fdb_datareader_tell
+   end interface
+ 
+   interface
+      integer(c_int) function fdb_datareader_seek(dr, pos) bind(C,name='fdb_datareader_seek')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_long
+         type(c_ptr), intent(in), value :: dr
+         integer(kind=c_long), intent(in), value  :: pos
+      end function fdb_datareader_seek
+   end interface
+   
+   interface
+      integer(c_int) function fdb_datareader_skip(dr, count) bind(C,name='fdb_datareader_skip')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_long
+         type(c_ptr), intent(in), value :: dr
+         integer(kind=c_long), intent(in), value  :: count
+      end function fdb_datareader_skip
+   end interface
+   
    interface
       integer(c_int) function fdb_datareader_read(dr, buf, count, read) bind(C,name='fdb_datareader_read')
          use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char, c_long
@@ -99,13 +124,22 @@ MODULE fdb
    end interface
 
    interface
-      integer(c_int) function fdb_datareader_tell(dr, pos) bind(C,name='fdb_datareader_tell')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char, c_long
-         type(c_ptr), intent(in), value      :: dr
-         type(c_ptr), intent(in), value      :: pos
-      end function fdb_datareader_tell
+      integer(c_int) function fdb_datareader_read_2(dr, buf, count, read) bind(C,name='fdb_datareader_read')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_long
+         type(c_ptr), intent(in), value :: dr
+         type(c_ptr), intent(inout) :: buf
+         integer(kind=c_long), intent(in), value  :: count
+         integer(kind=c_long), intent(inout)      :: read
+      end function fdb_datareader_read_2
    end interface
 
+
+   interface
+      integer(c_int) function fdb_delete_datareader(dr) bind(C,name='fdb_delete_datareader')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
+         type(c_ptr), intent(in), value      :: dr
+      end function fdb_delete_datareader
+   end interface
 
 
    CONTAINS
