@@ -6,18 +6,16 @@ program test_fdb_retrieve
    type(c_ptr)                               :: fdb_handle
    type(c_ptr)                               :: req
    type(c_ptr)                               :: dr
-   type(c_ptr)                               :: size
+   integer(c_long)                           :: size
+
    integer                                   :: i, ifile, igrib, iret
    character(len=10)                         :: open_mode = 'r'
 
-   ! character(len=4)                :: grib
-   ! character(len=1000)              :: buf
-   type(c_ptr)                               :: grib
-   type(c_ptr)                               :: buf
-   integer(c_long)                           :: count
-   type(c_ptr)                               :: read
+   character(kind=c_char, len=1), dimension(100)  :: string_buf
+   integer(c_long)                               :: count
+   integer(c_long)                               :: read
 
-   CHARACTER(len=32)                         :: date_values(2)
+   CHARACTER(len=32)                         :: date_values(1)
    CHARACTER(len=32)                         :: single_value(1)
 
 
@@ -27,27 +25,29 @@ program test_fdb_retrieve
 
 
    date_values(1)="202012040900"
-   date_values(2)="202012041200"
-   call fdb_request_add_fortran(req, "datetime", date_values)
-   call fdb_request_add_fortran(req, "generatingProcessIdentifier", ["121"])
-   call fdb_request_add_fortran(req, "level", ["17"])
-   call fdb_request_add_fortran(req, "parameterNumber", ["6"])
-   call fdb_request_add_fortran(req, "productDefinitionTemplateNumber", ["1"])
+   ! date_values(2)="202012041200"
+   call fdb_request_add_fortran(req, "dateTime", date_values)
    call fdb_request_add_fortran(req, "productionStatusOfProcessedData", ["2"])
-   call fdb_request_add_fortran(req, "typeOfLevel", ["generalVertical"])
+   call fdb_request_add_fortran(req, "productDefinitionTemplateNumber", ["1"])
+   call fdb_request_add_fortran(req, "parameterNumber", ["20"])
+   call fdb_request_add_fortran(req, "generatingProcessIdentifier", ["121"])
+   call fdb_request_add_fortran(req, "typeOfLevel", ["surface"])
+   call fdb_request_add_fortran(req, "level", ["0"])
 
    res = fdb_new_datareader(dr);
    res = fdb_retrieve(fdb_handle, req, dr)
+   write (*, *) 'res=', fdb_retrieve(fdb_handle, req, dr)
    res = fdb_datareader_open(dr, size)
+   write (*, *) 'size=', size
 
-   count=10000000
+   count=4
+   res = fdb_datareader_read(dr, string_buf, count, read)
+   write (*, *) 'string_buf=', string_buf(1:count)
 
-   res = fdb_datareader_read(dr, grib, count, read)
 
-   res = fdb_datareader_tell(dr, read);
 
-   ! write (*, *) 'grib=', grib
-   ! write (*, *) 'read=', read
+   ! res = fdb_datareader_tell(dr, read);
+
 
 
    write(*,*) 'end of test_fdb_retrieve'

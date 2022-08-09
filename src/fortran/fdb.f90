@@ -82,9 +82,9 @@ MODULE fdb
 
    interface
       integer(c_int) function fdb_datareader_open(dr, size) bind(C,name='fdb_datareader_open')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char, c_long
          type(c_ptr), intent(in), value :: dr
-         type(c_ptr), intent(in), value :: size
+         integer(kind=c_long), intent(inout) :: size
       end function fdb_datareader_open
    end interface
 
@@ -92,9 +92,9 @@ MODULE fdb
       integer(c_int) function fdb_datareader_read(dr, buf, count, read) bind(C,name='fdb_datareader_read')
          use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char, c_long
          type(c_ptr), intent(in), value :: dr
-         type(c_ptr), intent(in), value :: buf
+         character(kind=c_char, len=1), dimension(*), intent(inout) :: buf
          integer(kind=c_long), intent(in), value  :: count
-         type(c_ptr), intent(in)        :: read
+         integer(kind=c_long), intent(inout)      :: read
       end function fdb_datareader_read
    end interface
 
