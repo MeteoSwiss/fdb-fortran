@@ -17,3 +17,5 @@ target_include_directories(test_fdb_archive PUBLIC ${CMAKE_BINARY_DIR}/modules)
 add_executable(test_fdb_retrieve test/test_fdb_retrieve.f90)
 target_link_libraries(test_fdb_retrieve fdbf eccodes_f90)
 target_include_directories(test_fdb_retrieve PUBLIC ${CMAKE_BINARY_DIR}/modules)
+
+install( )
