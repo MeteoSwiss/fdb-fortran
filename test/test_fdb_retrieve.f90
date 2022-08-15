@@ -12,9 +12,7 @@ program test_fdb_retrieve
    character(len=10)                         :: open_mode = 'r'
 
    character(kind=c_char, len=1), dimension(:), allocatable  :: buf
-   character(len=:),allocatable   :: buf_str
    character(kind=c_char, len=1), dimension(:), allocatable  :: message
-   integer(c_long)                                :: count
    integer(c_long)                                :: read
 
    CHARACTER(len=32)                         :: date_values(1)
@@ -27,9 +25,7 @@ program test_fdb_retrieve
    integer                                   :: numberOfValues
    real, dimension(:), target, allocatable   :: values
 
-   character(kind=c_char, len=1), dimension(4) :: grib_string = ['G','R','I','B']
-
-   integer :: idx_a,idx_b, compute_next_index, next_grib
+   integer :: idx_a, idx_b, compute_next_index, next_grib
 
    res = fdb_initialise()
    res = fdb_new_handle(fdb_handle)
@@ -53,53 +49,46 @@ program test_fdb_retrieve
    res = fdb_retrieve(fdb_handle, req, dr)
    res = fdb_datareader_open(dr, size)
    write (*, *) 'size of data =', size
-
    
-   count=7357860
    allocate(buf(size))
-   res = fdb_datareader_read(dr, buf, count, read)
+   res = fdb_datareader_read(dr, buf, size, read)
 
-   buf_str=' '
-   call copy_a2s(buf, buf_str)
+   idx_a= index_chararray(buf,'GRIB') 
+   idx_b= index_chararray(buf(5:), 'GRIB')+4
 
-   write (*, *) 'buf_str: ',buf_str
-   ! idx_a=index(buf_str, 'GRIB')
-   ! idx_b=index(buf_str(5:), 'GRIB')+4
+   do while(compute_next_index .ne. 0)
+      message = buf(idx_a:idx_b-1)
+      WRITE (*, *) 'message=', message(:10)
 
-   ! do while(compute_next_index .ne. 0)
-   !    message = buf(idx_a:idx_b-1)
-   !    WRITE (*, *) 'message=', message(:10)
-
-   !       call codes_new_from_message(msgid, message, status)
-   !       write (*, *) 'status=', status, ', msgid=', msgid
+         call codes_new_from_message(msgid, message, status)
+         write (*, *) 'status=', status, ', msgid=', msgid
       
-   !       call codes_get(msgid, "parameterNumber", keyvalue_str)
-   !       write (*, *) 'parameterNumber=', keyvalue_str
+         call codes_get(msgid, "parameterNumber", keyvalue_str)
+         write (*, *) 'parameterNumber=', keyvalue_str
 
-   !       ! get the size of the values array
-   !       call codes_get_size(msgid, 'values', numberOfValues)
-   !       write (*, *) 'numberOfValues=', numberOfValues
+         ! get the size of the values array
+         call codes_get_size(msgid, 'values', numberOfValues)
+         write (*, *) 'numberOfValues=', numberOfValues
 
-   !       allocate (values(numberOfValues), stat=status)
-   !       ! get data values
-   !       call codes_get(msgid, 'values', values)
-   !       write (*, *) 'values=', values(0:20)
+         allocate (values(numberOfValues), stat=status)
+         ! get data values
+         call codes_get(msgid, 'values', values)
+         write (*, *) 'values=', values(0:20)
 
-   !    buf(idx_a:idx_b-1)=' '
-   !    buf_str(:)=' '
+      buf(idx_a:idx_b-1)=' '
 
-   !    call copy_a2s(buf, buf_str)
-   !    compute_next_index=index(buf_str(idx_b:), 'GRIB')
-   !    idx_a=compute_next_index+idx_b-1
+      compute_next_index= index_chararray(buf(idx_b:), 'GRIB')
+      idx_a=compute_next_index+idx_b-1
 
-   !    next_grib=index(buf_str(idx_a+5:), 'GRIB')
-   !    if (next_grib .eq. 0) THEN
-   !       idx_b=size+1
-   !    ELSE 
-   !       idx_b = index(buf_str(idx_a+5:), 'GRIB')+4+idx_a
-   !    END IF
-   ! end do
+      next_grib=index_chararray(buf(idx_a+5:), 'GRIB')
+      if (next_grib .eq. 0) THEN
+         idx_b=size+1
+      ELSE 
+         idx_b = index_chararray(buf(idx_a+5:), 'GRIB')+4+idx_a
+      END IF
+   end do
 
+   deallocate(buf)
    ! res = fdb_datareader_tell(dr, read);
    ! write (*, *) 'read=', read
 
