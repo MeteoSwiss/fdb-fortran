@@ -59,12 +59,28 @@ MODULE fdb
    end interface
 
    interface
+      integer(kind=c_int) function fdb_list(fdb_handle, req, it) bind(C, name='fdb_list')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
+         type(c_ptr), intent(in), value :: fdb_handle
+         type(c_ptr), intent(in), value :: req         
+         type(c_ptr), intent(in), value :: it
+      end function fdb_list
+   end interface
+
+   interface
       integer(kind=c_int) function fdb_retrieve(fdb_handle, req, dr) bind(C, name='fdb_retrieve')
          use, intrinsic :: iso_c_binding, only : c_int, c_ptr
          type(c_ptr), intent(in), value :: fdb_handle
          type(c_ptr), intent(in), value :: req         
          type(c_ptr), intent(in), value :: dr
       end function fdb_retrieve
+   end interface
+
+   interface
+      integer(kind=c_int) function fdb_flush(fdb_handle) bind(C, name='fdb_flush')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
+         type(c_ptr), intent(in), value :: fdb_handle
+      end function fdb_flush
    end interface
 
    interface
@@ -123,16 +139,15 @@ MODULE fdb
       end function fdb_datareader_read
    end interface
 
-   interface
-      integer(c_int) function fdb_datareader_read_2(dr, buf, count, read) bind(C,name='fdb_datareader_read')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_long
-         type(c_ptr), intent(in), value :: dr
-         type(c_ptr), intent(inout) :: buf
-         integer(kind=c_long), intent(in), value  :: count
-         integer(kind=c_long), intent(inout)      :: read
-      end function fdb_datareader_read_2
-   end interface
-
+   ! interface
+   !    integer(c_int) function fdb_datareader_read_2(dr, buf, count, read) bind(C,name='fdb_datareader_read')
+   !       use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_long
+   !       type(c_ptr), intent(in), value :: dr
+   !       type(c_ptr), intent(inout) :: buf
+   !       integer(kind=c_long), intent(in), value  :: count
+   !       integer(kind=c_long), intent(inout)      :: read
+   !    end function fdb_datareader_read_2
+   ! end interface
 
    interface
       integer(c_int) function fdb_delete_datareader(dr) bind(C,name='fdb_delete_datareader')
@@ -141,6 +156,28 @@ MODULE fdb
       end function fdb_delete_datareader
    end interface
 
+   interface
+      integer(c_int) function fdb_new_listiterator(it) bind(C,name='fdb_new_listiterator')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
+         type(c_ptr), intent(in)      :: it
+      end function fdb_new_listiterator
+   end interface
+
+   interface
+      integer(c_int) function fdb_listiterator_next(it, exist, str) bind(C,name='fdb_listiterator_next')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char, c_bool
+         type(c_ptr), intent(in), value               :: it
+         logical(kind=c_bool), intent(in)      :: exist
+         type(c_ptr), intent(inout) :: str
+      end function fdb_listiterator_next
+   end interface
+
+   interface
+      integer(c_int) function fdb_delete_listiterator(it) bind(C,name='fdb_delete_listiterator')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
+         type(c_ptr), intent(in), value      :: it
+      end function fdb_delete_listiterator
+   end interface
 
    CONTAINS
    SUBROUTINE get_value_of_key(igrib, keyname, keyvalue_str, keyvalue_int)
@@ -172,6 +209,21 @@ MODULE fdb
       END DO
       a(LEN(s)+1) = char(0)
    END SUBROUTINE copy_s2a
+
+   SUBROUTINE copy_a2s(a,s)  
+      CHARACTER,INTENT(IN) :: a(:)
+      CHARACTER(len=*),INTENT(INOUT)  :: s
+      INTEGER :: i
+      write (*, *) 'copy_a2s, len(s): ',LEN(s)
+      ! s='a'
+      DO i = 1,20
+         ! write (*, *) 's',a(i)
+         ! s(i:i) = a(i)
+         s(i:i) = a(i) !s(:i)!//a(i)//s(i:)
+         write (*, *) 's= ',s(i:i)
+      END DO
+      write (*, *) 'copy_a2s, len(s): ',LEN(s)
+   END SUBROUTINE copy_a2s
    
    SUBROUTINE add_key(key, igrib, keyname_str, type)  
       use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
@@ -232,6 +284,20 @@ MODULE fdb
       DEALLOCATE(values_array)
    END SUBROUTINE
 
-
+   function str_replace(str,pos,new) result(strout)
+      implicit none
+      character(len=*), intent(in) :: str
+      character(len=:), allocatable :: strout
+      character(len=1), intent(in) :: new
+      integer :: i, pos
+      strout=""
+      do i=1,LEN(str)
+         if(i.eq.pos)then
+            strout=strout//new
+         else
+            strout=strout//str(i:i)
+         endif
+      end do
+   end function str_replace
 
 end module fdb

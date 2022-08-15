@@ -11,8 +11,9 @@ program test_fdb_retrieve
    integer                                   :: i, ifile, igrib, iret
    character(len=10)                         :: open_mode = 'r'
 
-   character(kind=c_char, len=1), dimension(10000000)  :: string_buf
-   type(c_ptr)                                    :: buf
+   character(kind=c_char, len=1), dimension(:), allocatable  :: buf
+   character(len=:),allocatable   :: buf_str
+   character(kind=c_char, len=1), dimension(:), allocatable  :: message
    integer(c_long)                                :: count
    integer(c_long)                                :: read
 
@@ -25,6 +26,10 @@ program test_fdb_retrieve
 
    integer                                   :: numberOfValues
    real, dimension(:), target, allocatable   :: values
+
+   character(kind=c_char, len=1), dimension(4) :: grib_string = ['G','R','I','B']
+
+   integer :: idx_a,idx_b, compute_next_index, next_grib
 
    res = fdb_initialise()
    res = fdb_new_handle(fdb_handle)
@@ -49,61 +54,80 @@ program test_fdb_retrieve
    res = fdb_datareader_open(dr, size)
    write (*, *) 'size of data =', size
 
-   count=10000000
-   res = fdb_datareader_read(dr, string_buf, count, read)
+   
+   count=7357860
+   allocate(buf(size))
+   res = fdb_datareader_read(dr, buf, count, read)
 
-   if (ALL(string_buf(:4) .eq. ['G','R','I','B'])) then 
-      write (*, *) 'PASS, string_buf=', string_buf(1:count)
-   ELSE 
-      WRITE (*, *) 'FAIL, string_buf=', string_buf(1:count)
-   END IF
+   buf_str=' '
+   call copy_a2s(buf, buf_str)
 
-   res = fdb_datareader_tell(dr, read);
-   write (*, *) 'read=', read
+   write (*, *) 'buf_str: ',buf_str
+   ! idx_a=index(buf_str, 'GRIB')
+   ! idx_b=index(buf_str(5:), 'GRIB')+4
 
-   ! count=4
-   ! res = fdb_datareader_read_2(dr, buf, count, read)
-   ! write (*, *) 'buf=', buf
+   ! do while(compute_next_index .ne. 0)
+   !    message = buf(idx_a:idx_b-1)
+   !    WRITE (*, *) 'message=', message(:10)
 
-   call codes_new_from_message(msgid, string_buf, status)
-   write (*, *) 'status=', status, ', msgid=', msgid
+   !       call codes_new_from_message(msgid, message, status)
+   !       write (*, *) 'status=', status, ', msgid=', msgid
+      
+   !       call codes_get(msgid, "parameterNumber", keyvalue_str)
+   !       write (*, *) 'parameterNumber=', keyvalue_str
 
-   call codes_get(msgid, "parameterNumber", keyvalue_str)
-   write (*, *) 'parameterNumber=', keyvalue_str
+   !       ! get the size of the values array
+   !       call codes_get_size(msgid, 'values', numberOfValues)
+   !       write (*, *) 'numberOfValues=', numberOfValues
 
-   ! get the size of the values array
-   call codes_get_size(msgid, 'values', numberOfValues)
-   write (*, *) 'numberOfValues=', numberOfValues
+   !       allocate (values(numberOfValues), stat=status)
+   !       ! get data values
+   !       call codes_get(msgid, 'values', values)
+   !       write (*, *) 'values=', values(0:20)
 
-   allocate (values(numberOfValues), stat=status)
-   ! get data values
-   call codes_get(msgid, 'values', values)
-   write (*, *) 'values=', values(0:20)
+   !    buf(idx_a:idx_b-1)=' '
+   !    buf_str(:)=' '
 
-   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   !    call copy_a2s(buf, buf_str)
+   !    compute_next_index=index(buf_str(idx_b:), 'GRIB')
+   !    idx_a=compute_next_index+idx_b-1
 
-   call codes_new_from_message(msgid, string_buf, status)
-   write (*, *) 'status=', status, ', msgid=', msgid
+   !    next_grib=index(buf_str(idx_a+5:), 'GRIB')
+   !    if (next_grib .eq. 0) THEN
+   !       idx_b=size+1
+   !    ELSE 
+   !       idx_b = index(buf_str(idx_a+5:), 'GRIB')+4+idx_a
+   !    END IF
+   ! end do
 
-   call codes_get(msgid, "parameterNumber", keyvalue_str)
-   write (*, *) 'parameterNumber=', keyvalue_str
+   ! res = fdb_datareader_tell(dr, read);
+   ! write (*, *) 'read=', read
+
+   ! ! count=4
+   ! ! res = fdb_datareader_read_2(dr, buf, count, read)
+   ! ! write (*, *) 'buf=', buf
+
+   ! call codes_get_message_size_int(msgid, nbytes, status)
+   ! write (*, *) 'nbytes=', nbytes
+   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   ! ! ! res = fdb_flush(fdb_handle) ! WHAT DOES THIS DO?
+   ! ! res = fdb_new_listiterator(it)
+   ! ! res = fdb_list(fdb_handle, req, it);
+
+   ! ! res = fdb_listiterator_next(it, exist, item);
+   ! ! call c_f_pointer(item, itemf)
+   ! ! write (*, *) 'itemf=', itemf, 'enditemf'
+   ! ! write (*, *) 'length itemf=', LEN(itemf)
+
+   ! ! res = fdb_listiterator_next(it, exist, item);
+   ! ! call c_f_pointer(item, itemf)
+   ! ! write (*, *) 'itemf=', itemf, 'enditemf'
+
+   ! ! res = fdb_delete_listiterator(it)
 
 
-   ! call codes_index_get(indexid, key, values, status) 
-
-   ! get the size of the values array
-   call codes_get_size(msgid, 'values', numberOfValues)
-   write (*, *) 'numberOfValues=', numberOfValues
-
-   allocate (values(numberOfValues), stat=status)
-   ! get data values
-   call codes_get(msgid, 'values', values)
-   write (*, *) 'values=', values(0:20)
-
-   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-   res = fdb_datareader_seek(dr, read);
-   write (*, *) 'read after seek=', read
+   ! res = fdb_datareader_seek(dr, read);
+   ! write (*, *) 'read after seek=', read
 
 
    res = fdb_delete_datareader(dr);
