@@ -35,3 +35,4 @@ target_link_libraries(fdbf fdb5)
 install(TARGETS fdbf
 DESTINATION ${CMAKE_INSTALL_PREFIX}
 )
+target_include_directories(fdbf PUBLIC ${CMAKE_BINARY_DIR}/modules)
