@@ -13,7 +13,14 @@ add_subdirectory(src)
 add_executable(test_fdb_archive test/test_fdb_archive.f90)
 target_link_libraries(test_fdb_archive fdbf eccodes_f90)
 target_include_directories(test_fdb_archive PUBLIC ${CMAKE_BINARY_DIR}/modules)
+install(TARGETS test_fdb_archive
+    DESTINATION ${CMAKE_INSTALL_PREFIX}
+    )
 
 add_executable(test_fdb_retrieve test/test_fdb_retrieve.f90)
 target_link_libraries(test_fdb_retrieve fdbf eccodes_f90)
 target_include_directories(test_fdb_retrieve PUBLIC ${CMAKE_BINARY_DIR}/modules)
+install(TARGETS test_fdb_retrieve
+    DESTINATION ${CMAKE_INSTALL_PREFIX}
+    )
+
