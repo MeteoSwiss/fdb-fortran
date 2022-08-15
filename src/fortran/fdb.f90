@@ -214,15 +214,9 @@ MODULE fdb
       CHARACTER,INTENT(IN) :: a(:)
       CHARACTER(len=*),INTENT(INOUT)  :: s
       INTEGER :: i
-      write (*, *) 'copy_a2s, len(s): ',LEN(s)
-      ! s='a'
-      DO i = 1,20
-         ! write (*, *) 's',a(i)
-         ! s(i:i) = a(i)
-         s(i:i) = a(i) !s(:i)!//a(i)//s(i:)
-         write (*, *) 's= ',s(i:i)
+      DO i = 1,SIZE(a)
+         s(i:i) = 'z' ! a(i) ! FAILS HERE
       END DO
-      write (*, *) 'copy_a2s, len(s): ',LEN(s)
    END SUBROUTINE copy_a2s
    
    SUBROUTINE add_key(key, igrib, keyname_str, type)  
