@@ -25,7 +25,7 @@ program test_fdb_retrieve
    integer                                   :: numberOfValues
    real, dimension(:), target, allocatable   :: values
 
-   integer :: idx_a, idx_b, compute_next_index, next_grib
+   integer :: idx_a, idx_b, next_message_idx, next_grib
 
    res = fdb_initialise()
    res = fdb_new_handle(fdb_handle)
@@ -55,8 +55,10 @@ program test_fdb_retrieve
 
    idx_a= index_chararray(buf,'GRIB') 
    idx_b= index_chararray(buf(5:), 'GRIB')+4
+   next_message_idx=idx_a
 
-   do while(compute_next_index .ne. 0)
+   do while(next_message_idx .ne. 0)
+      next_message_idx=0
       message = buf(idx_a:idx_b-1)
       WRITE (*, *) 'message=', message(:10)
 
@@ -77,8 +79,10 @@ program test_fdb_retrieve
 
       buf(idx_a:idx_b-1)=' '
 
-      compute_next_index= index_chararray(buf(idx_b:), 'GRIB')
-      idx_a=compute_next_index+idx_b-1
+      ! next_message = 0 if no further GRIB messages in buf
+      next_message_idx=index_chararray(buf(idx_b:), 'GRIB')
+      idx_a=next_message_idx+idx_b-1
+      !idx_a=idx_b
 
       next_grib=index_chararray(buf(idx_a+5:), 'GRIB')
       if (next_grib .eq. 0) THEN
@@ -89,35 +93,6 @@ program test_fdb_retrieve
    end do
 
    deallocate(buf)
-   ! res = fdb_datareader_tell(dr, read);
-   ! write (*, *) 'read=', read
-
-   ! ! count=4
-   ! ! res = fdb_datareader_read_2(dr, buf, count, read)
-   ! ! write (*, *) 'buf=', buf
-
-   ! call codes_get_message_size_int(msgid, nbytes, status)
-   ! write (*, *) 'nbytes=', nbytes
-   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   ! ! ! res = fdb_flush(fdb_handle) ! WHAT DOES THIS DO?
-   ! ! res = fdb_new_listiterator(it)
-   ! ! res = fdb_list(fdb_handle, req, it);
-
-   ! ! res = fdb_listiterator_next(it, exist, item);
-   ! ! call c_f_pointer(item, itemf)
-   ! ! write (*, *) 'itemf=', itemf, 'enditemf'
-   ! ! write (*, *) 'length itemf=', LEN(itemf)
-
-   ! ! res = fdb_listiterator_next(it, exist, item);
-   ! ! call c_f_pointer(item, itemf)
-   ! ! write (*, *) 'itemf=', itemf, 'enditemf'
-
-   ! ! res = fdb_delete_listiterator(it)
-
-
-   ! res = fdb_datareader_seek(dr, read);
-   ! write (*, *) 'read after seek=', read
-
 
    res = fdb_delete_datareader(dr);
    write(*,*) 'end of test_fdb_retrieve'
