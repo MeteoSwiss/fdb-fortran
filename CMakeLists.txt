@@ -27,8 +27,3 @@ target_include_directories(test_fdb_retrieve PUBLIC ${CMAKE_Fortran_MODULE_DIREC
 install(TARGETS test_fdb_retrieve
     DESTINATION ${CMAKE_INSTALL_PREFIX}
     )
-
-target_include_directories(fdbf PUBLIC ${CMAKE_Fortran_MODULE_DIRECTORY})
-install(TARGETS fdbf
-  DESTINATION ${CMAKE_INSTALL_PREFIX}
-)

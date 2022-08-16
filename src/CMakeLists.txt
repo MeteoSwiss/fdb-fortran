@@ -30,13 +30,14 @@ set( fdb_fortran_srcs
    fortran/fdb.f90
 )
 
-# add_library(fdbf ${fdb_fortran_srcs} )
-# target_include_directories(fdbf PUBLIC ${CMAKE_Fortran_MODULE_DIRECTORY})
-# target_link_libraries(fdbf fdb5)
-# install(TARGETS fdbf
-# DESTINATION ${CMAKE_INSTALL_PREFIX}
-# )
-
 add_library(fdbf ${fdb_fortran_srcs} )
+target_include_directories(fdbf PUBLIC ${CMAKE_Fortran_MODULE_DIRECTORY})
 target_link_libraries(fdbf fdb5)
+install(TARGETS fdbf
+DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+)
+
+install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY} 
+DESTINATION ${CMAKE_INSTALL_PREFIX}/include/fortran/fdb
+)
 
