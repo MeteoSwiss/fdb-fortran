@@ -30,9 +30,15 @@ set( fdb_fortran_srcs
    fortran/fdb.f90
 )
 
+enable_language(CXX)
+# verify the compatibility of the C/Fortran and C++/Fortran compilers
+include(FortranCInterface)
+FortranCInterface_VERIFY(CXX)
+find_package(fdb5 REQUIRED)
+
 add_library(fdbf ${fdb_fortran_srcs} )
+target_link_libraries(fdbf PUBLIC  ${fdb5_LIBRARIES})
 target_include_directories(fdbf PUBLIC ${CMAKE_Fortran_MODULE_DIRECTORY})
-target_link_libraries(fdbf PUBLIC fdb5)
 install(TARGETS fdbf
 DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 )
