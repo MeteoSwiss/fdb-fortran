@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(fdb-fortran
-  LANGUAGES CXX Fortran
+  LANGUAGES C CXX Fortran
   VERSION 0.1)
 
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
