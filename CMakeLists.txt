@@ -9,6 +9,11 @@ include(CMakePrintHelpers)
 cmake_print_variables(CMAKE_Fortran_MODULE_DIRECTORY)
 cmake_print_variables(CMAKE_BINARY_DIR)
 
+include(FortranCInterface)
+
+# working with C++ and Fortran
+FortranCInterface_VERIFY(CXX)
+
 find_package(fdb5 REQUIRED)
 find_package(eckit REQUIRED)
 find_package(metkit REQUIRED)
