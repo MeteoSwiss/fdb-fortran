@@ -37,8 +37,8 @@ FortranCInterface_VERIFY(CXX)
 find_package(fdb5 REQUIRED)
 
 add_library(fdbf ${fdb_fortran_srcs} )
+target_include_directories(fdbf ${CMAKE_Fortran_MODULE_DIRECTORY})
 target_link_libraries(fdbf PUBLIC  ${fdb5_LIBRARIES})
-target_include_directories(fdbf PUBLIC ${CMAKE_Fortran_MODULE_DIRECTORY})
 install(TARGETS fdbf
 DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 )
