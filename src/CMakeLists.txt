@@ -30,10 +30,10 @@ set( fdb_fortran_srcs
    fortran/fdb.f90
 )
 
-# enable_language(CXX)
-# # verify the compatibility of the C/Fortran and C++/Fortran compilers
-# include(FortranCInterface)
-# FortranCInterface_VERIFY(CXX)
+enable_language(CXX)
+# verify the compatibility of the C/Fortran and C++/Fortran compilers
+include(FortranCInterface)
+FortranCInterface_VERIFY(CXX)
 # find_package(fdb5 REQUIRED)
 
 add_library(fdbf ${fdb_fortran_srcs} )
