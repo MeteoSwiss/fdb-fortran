@@ -1,6 +1,7 @@
 MODULE fdb
    use, intrinsic :: iso_c_binding
    use eccodes
+   implicit none
 
    interface
       integer(kind=c_int) function fdb_key_add(key, param, value) bind(C, name='fdb_key_add')
@@ -56,15 +57,6 @@ MODULE fdb
          type(c_ptr), intent(in) :: values(0:*)
          integer(kind=c_int), INTENT(in), value :: numValues
       end function 
-   end interface
-
-   interface
-      integer(kind=c_int) function fdb_list(fdb_handle, req, it) bind(C, name='fdb_list')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
-         type(c_ptr), intent(in), value :: fdb_handle
-         type(c_ptr), intent(in), value :: req         
-         type(c_ptr), intent(in), value :: it
-      end function fdb_list
    end interface
 
    interface
@@ -139,21 +131,22 @@ MODULE fdb
       end function fdb_datareader_read
    end interface
 
-   ! interface
-   !    integer(kind=c_int) function fdb_datareader_read_2(dr, buf, count, read) bind(C,name='fdb_datareader_read')
-   !       use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_long
-   !       type(c_ptr), intent(in), value :: dr
-   !       type(c_ptr), intent(inout) :: buf
-   !       integer(kind=c_long), intent(in), value  :: count
-   !       integer(kind=c_long), intent(inout)      :: read
-   !    end function fdb_datareader_read_2
-   ! end interface
-
    interface
       integer(kind=c_int) function fdb_delete_datareader(dr) bind(C,name='fdb_delete_datareader')
          use, intrinsic :: iso_c_binding, only : c_int, c_ptr
          type(c_ptr), intent(in), value      :: dr
       end function fdb_delete_datareader
+   end interface
+
+
+   interface
+      integer(kind=c_int) function fdb_list(fdb_handle, req, it, duplicates) bind(C,name='fdb_list')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_bool, c_int
+         type(c_ptr), value   :: fdb_handle
+         type(c_ptr), value   :: req 
+         type(c_ptr)       :: it
+         logical(kind=c_bool) :: duplicates
+      end function fdb_list
    end interface
 
    interface
@@ -164,11 +157,9 @@ MODULE fdb
    end interface
 
    interface
-      integer(kind=c_int) function fdb_listiterator_next(it, exist, str) bind(C,name='fdb_listiterator_next')
+      integer(kind=c_int) function fdb_listiterator_next(it) bind(C,name='fdb_listiterator_next')
          use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char, c_bool
          type(c_ptr), intent(in), value               :: it
-         logical(kind=c_bool), intent(in)      :: exist
-         type(c_ptr), intent(inout) :: str
       end function fdb_listiterator_next
    end interface
 
@@ -179,11 +170,24 @@ MODULE fdb
       end function fdb_delete_listiterator
    end interface
 
+   interface
+      integer(kind=c_int) function fdb_listiterator_attrs(it, uri, off, len) bind(C,name='fdb_listiterator_attrs')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_int, c_char
+         type(c_ptr), intent(in), value      :: it
+         character(kind=c_char, len=1), dimension(*), INTENT(inout) :: uri
+         integer(kind=c_int), intent(inout) :: off
+         integer(kind=c_int), intent(inout) :: len
+      end function fdb_listiterator_attrs
+   end interface
+
    CONTAINS
    SUBROUTINE get_value_of_key(igrib, keyname, keyvalue_str, keyvalue_int)
       character(len=*), INTENT(IN)         :: keyname
       character(len=128), INTENT(OUT)    :: keyvalue_str
       integer, INTENT(INOUT), OPTIONAL     :: keyvalue_int
+      integer, INTENT(IN)                 :: igrib
+      integer                             :: res
+      integer                             :: is_missing
       call codes_is_missing(igrib, trim(keyname), is_missing);
       if (is_missing /= 1) then
          ! key value is not missing so get values
@@ -255,7 +259,8 @@ MODULE fdb
       character(kind=c_char), dimension(128)      :: keyvalue
       character(len=128)                          :: keyvalue_str
       integer                                     :: keyvalue_int
-
+      integer, INTENT(IN)                         :: igrib
+      integer                                     :: res
       if (type == 'integer') then
          call get_value_of_key(igrib, trim(keyname_str), keyvalue_str, keyvalue_int) 
       else
@@ -293,8 +298,9 @@ MODULE fdb
       CHARACTER(len=*), INTENT(IN)                   :: values_str_array(:)
       CHARACTER(kind=c_char), TARGET, ALLOCATABLE    :: values_array(:,:)
       TYPE(C_PTR)                                    :: values_ptr(SIZE(values_str_array))
-      integer(kind=c_int)                                 :: numStrings
+      integer(kind=c_int)                            :: numStrings
       character(kind=c_char), dimension(128)         :: keyname
+      integer(kind=c_int)                            :: res
 
       numStrings=SIZE(values_str_array)
       ALLOCATE(values_array(32,numStrings))
