@@ -165,15 +165,6 @@ namespace fdbf
 
         grib_keys_iterator_delete(ks);
 
-        // {
-        //     char value[1024];
-        //     size_t len = sizeof(value);
-        //     if (grib_get_string(h, "paramId", value, &len) == 0)
-        //     {
-        //         gather.setValue("param", value);
-        //     }
-        // }
-
         // Look for request embbeded in GRIB message
         long local;
         size_t size;
