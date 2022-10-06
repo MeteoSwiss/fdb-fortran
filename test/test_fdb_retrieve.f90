@@ -2,21 +2,22 @@ program test_fdb_retrieve
    use fdb
    use eccodes
 
-   integer(c_int)                            :: res
+   integer(c_int)                            :: res, err
    type(c_ptr)                               :: fdb_handle
-   type(c_ptr)                               :: req
-   type(c_ptr)                               :: dr
-   integer(c_long)                           :: size
+   type(c_ptr)                               :: req ! Request 
+   type(c_ptr)                               :: dr ! DataReader
+   type(c_ptr)                               :: it ! ListIterator
+
+   integer(c_long)                           :: size, read, messageLength, marker
 
    integer                                   :: i, ifile, igrib, iret
    character(len=10)                         :: open_mode = 'r'
 
    character(kind=c_char, len=1), dimension(:), allocatable  :: buf
    character(kind=c_char, len=1), dimension(:), allocatable  :: message
-   integer(c_long)                                :: read
 
    CHARACTER(len=32)                         :: date_values(1)
-   CHARACTER(len=32)                         :: parameterNumber_values(3)
+   CHARACTER(len=32)                         :: parameterNumber_values(2)
    CHARACTER(len=32)                         :: single_value(1)
 
    integer                                   :: msgid, status
@@ -25,71 +26,87 @@ program test_fdb_retrieve
    integer                                   :: numberOfValues
    real, dimension(:), target, allocatable   :: values
 
+   character(kind=c_char, len=1), dimension(100)  :: uri
+   integer(kind=c_int)                            :: off, len, max_len
+   logical(kind=c_bool)                           :: duplicates = .false.
+
    integer :: idx_a, idx_b, next_message_idx, next_grib
+   ! grib api error messages
+   character(len=24) :: gribErrorMsg = 'Error reading grib file'
+   character(len=20) :: gribFunction = 'test'
 
    res = fdb_initialise()
    res = fdb_new_handle(fdb_handle)
    res = fdb_new_request(req)
 
-
-   date_values(1)="202012040900"
-   ! date_values(2)="202012041200"
-   call fdb_request_add_fortran(req, "dateTime", date_values)
-   call fdb_request_add_fortran(req, "productionStatusOfProcessedData", ["2"])
-   call fdb_request_add_fortran(req, "productDefinitionTemplateNumber", ["1"])
-   parameterNumber_values(1)='18'
-   parameterNumber_values(2)='20'
-   parameterNumber_values(3)='30'
+   call fdb_request_add_fortran(req, "validityDate", ["20220703"])
+   call fdb_request_add_fortran(req, "validityTime", ["0"])
+   call fdb_request_add_fortran(req, "productionStatusOfProcessedData", ["255"])
+   call fdb_request_add_fortran(req, "productDefinitionTemplateNumber", ["0"])
+   parameterNumber_values(1)='0'
+   parameterNumber_values(2)='254'
    call fdb_request_add_fortran(req, "parameterNumber", parameterNumber_values)
-   call fdb_request_add_fortran(req, "generatingProcessIdentifier", ["121"])
-   call fdb_request_add_fortran(req, "typeOfLevel", ["surface"])
+   call fdb_request_add_fortran(req, "parameterCategory", ['0','1','3'])
+   call fdb_request_add_fortran(req, "discipline", ['0','2'])
+   call fdb_request_add_fortran(req, "generatingProcessIdentifier", ["153"])
+   call fdb_request_add_fortran(req, "typeOfFirstFixedSurface", ["sfc"])
    call fdb_request_add_fortran(req, "level", ["0"])
 
    res = fdb_new_datareader(dr);
+
+   res = fdb_list(fdb_handle, req, it, duplicates)
+
+   err = fdb_listiterator_next(it)
+
+   do while(err == 0) 
+      res = fdb_listiterator_attrs(it, uri, off, len);
+      write (*, *) 'len =', len, 'off =', off
+
+      err = fdb_listiterator_next(it)
+
+      if (len > max_len) then
+         max_len = len
+      end if
+   end do
+
+   allocate(buf(max_len))
+
    res = fdb_retrieve(fdb_handle, req, dr)
    res = fdb_datareader_open(dr, size)
-   write (*, *) 'size of data =', size
+   write (*, *) 'size of total data =', size
+
+   res = fdb_datareader_tell(dr, read);
+   write(*,*) 'read= ', read
+   do while(read .LT. size)
+
+      ! FIND LENGHT OF MESSAGE
+      marker = 2000
+      res = fdb_datareader_read(dr, buf, marker, read)
+      call codes_new_from_message(msgid, buf, status)
+      call grib_get(msgid,'totalLength', messageLength, iret)
+      call grib_check(iret,gribFunction,gribErrorMsg)
+      write (*, *) 'LENGTH OF MESSAGE (GRIB): ', messageLength
+      ! GO BACK TO START OF MESSAGE
+      res = fdb_datareader_skip(dr, -marker)
    
-   allocate(buf(size))
-   res = fdb_datareader_read(dr, buf, size, read)
-
-   idx_a= index_chararray(buf,'GRIB') 
-   idx_b= index_chararray(buf(5:), 'GRIB')+4
-   next_message_idx=idx_a
-
-   do while(next_message_idx .ne. 0)
-      next_message_idx=0
-      message = buf(idx_a:idx_b-1)
-      WRITE (*, *) 'message=', message(:10)
-
-         call codes_new_from_message(msgid, message, status)
-         write (*, *) 'status=', status, ', msgid=', msgid
-      
-         call codes_get(msgid, "parameterNumber", keyvalue_str)
-         write (*, *) 'parameterNumber=', keyvalue_str
-
-         ! get the size of the values array
-         call codes_get_size(msgid, 'values', numberOfValues)
-         write (*, *) 'numberOfValues=', numberOfValues
-
-         allocate (values(numberOfValues), stat=status)
-         ! get data values
-         call codes_get(msgid, 'values', values)
-         write (*, *) 'values=', values(0:20)
-
-      buf(idx_a:idx_b-1)=' '
-
-      ! next_message = 0 if no further GRIB messages in buf
-      next_message_idx=index_chararray(buf(idx_b:), 'GRIB')
-      idx_a=next_message_idx+idx_b-1
-      !idx_a=idx_b
-
-      next_grib=index_chararray(buf(idx_a+5:), 'GRIB')
-      if (next_grib .eq. 0) THEN
-         idx_b=size+1
-      ELSE 
-         idx_b = index_chararray(buf(idx_a+5:), 'GRIB')+4+idx_a
-      END IF
+      ! READ WHOLE MESSAGE
+      res = fdb_datareader_read(dr, buf, messageLength, read)
+   
+      call codes_new_from_message(msgid, buf, status)
+      write (*, *) 'status=', status, ', msgid=', msgid
+   
+      call codes_get(msgid, "parameterNumber", keyvalue_str)
+      write (*, *) 'parameterNumber=', keyvalue_str
+   
+      call codes_get(msgid, "parameterCategory", keyvalue_str)
+      write (*, *) 'parameterCategory=', keyvalue_str
+   
+      call codes_get(msgid, "discipline", keyvalue_str)
+      write (*, *) 'discipline=', keyvalue_str
+   
+      res = fdb_datareader_tell(dr, read)
+      write(*,*) 'read= ', read
+      write (*, *) '******** FINISHED WITH MESSAGE *****************'
    end do
 
    deallocate(buf)
