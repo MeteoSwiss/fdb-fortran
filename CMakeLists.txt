@@ -32,10 +32,3 @@ target_include_directories(test_fdb_retrieve PUBLIC ${CMAKE_Fortran_MODULE_DIREC
 install(TARGETS test_fdb_retrieve
     DESTINATION ${CMAKE_INSTALL_PREFIX}
     )
-
-add_executable(test_fdb_retrieve2 test/test_fdb_retrieve2.f90)
-target_link_libraries(test_fdb_retrieve2 fdbf eccodes_f90)
-target_include_directories(test_fdb_retrieve PUBLIC ${CMAKE_Fortran_MODULE_DIRECTORY})
-install(TARGETS test_fdb_retrieve2
-    DESTINATION ${CMAKE_INSTALL_PREFIX}
-    )
