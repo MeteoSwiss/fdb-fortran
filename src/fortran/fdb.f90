@@ -245,7 +245,9 @@ MODULE fdb
       res = fdb_key_add(key, keyname, keyvalue)
    END SUBROUTINE add_key_to_fdb_from_file
 
-
+   ! convertValues creates a list of pointers to characer array values used in requests to fdb. 
+   ! First converts array of strings to array of character arrays, then creates pointers.
+   ! This is required since the interface fdb_request_add expects this data format. 
    SUBROUTINE convertValues(numStrings, values_str_array, values_array, values_ptr)
       use, intrinsic :: iso_c_binding 
       integer(kind=c_int) , INTENT(IN)              :: numStrings
@@ -261,7 +263,6 @@ MODULE fdb
          call copy_s2a(values_array(:,ns), trim(values_str_array(ns)))
          values_ptr(ns) = C_LOC(values_array(:,ns))
       END DO
-            
    END SUBROUTINE
 
 
