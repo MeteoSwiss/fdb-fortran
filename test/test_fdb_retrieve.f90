@@ -37,8 +37,9 @@ program test_fdb_retrieve
 
    res = fdb_initialise()
    res = fdb_new_handle(fdb_handle)
-   res = fdb_new_request(req)
 
+   ! Create request / query for fdb
+   res = fdb_new_request(req)
    call fdb_request_add_fortran(req, "validityDate", ["20220703"])
    call fdb_request_add_fortran(req, "validityTime", ["0"])
    call fdb_request_add_fortran(req, "productionStatusOfProcessedData", ["255"])
@@ -52,8 +53,8 @@ program test_fdb_retrieve
    call fdb_request_add_fortran(req, "typeOfFirstFixedSurface", ["sfc"])
    call fdb_request_add_fortran(req, "level", ["0"])
 
-   res = fdb_new_datareader(dr);
-
+   ! Iterate through messages with listiterator, 
+   ! to get maximum length of a GRIB message in the returned data.
    res = fdb_list(fdb_handle, req, it, duplicates)
 
    err = fdb_listiterator_next(it)
@@ -71,25 +72,28 @@ program test_fdb_retrieve
 
    allocate(buf(max_len))
 
+   res = fdb_new_datareader(dr);
    res = fdb_retrieve(fdb_handle, req, dr)
    res = fdb_datareader_open(dr, size)
    write (*, *) 'size of total data =', size
 
    res = fdb_datareader_tell(dr, read);
    write(*,*) 'read= ', read
+
+   ! Iterate through messages and read data via eccodes
    do while(read .LT. size)
 
-      ! FIND LENGHT OF MESSAGE
+      ! Find length of current GRIB message
       marker = 2000
       res = fdb_datareader_read(dr, buf, marker, read)
       call codes_new_from_message(msgid, buf, status)
       call grib_get(msgid,'totalLength', messageLength, iret)
       call grib_check(iret,gribFunction,gribErrorMsg)
       write (*, *) 'LENGTH OF MESSAGE (GRIB): ', messageLength
-      ! GO BACK TO START OF MESSAGE
+      ! Put reader back to the start of the message
       res = fdb_datareader_skip(dr, -marker)
    
-      ! READ WHOLE MESSAGE
+      ! Read whole GRIB message
       res = fdb_datareader_read(dr, buf, messageLength, read)
    
       call codes_new_from_message(msgid, buf, status)
