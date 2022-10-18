@@ -25,13 +25,13 @@ program test_fdb_archive
 
       is_missing = 0;
 
-      call add_key(key, igrib, 'generatingProcessIdentifier')
-      call add_key(key, igrib, 'productionStatusOfProcessedData')
-      call add_key(key, igrib, 'dateTime')
-      call add_key(key, igrib, 'typeOfLevel')
-      call add_key(key, igrib, 'parameterNumber')
-      call add_key(key, igrib, 'productDefinitionTemplateNumber')
-      call add_key(key, igrib, 'level', 'integer')
+      call add_key_to_fdb_from_file(key, igrib, 'generatingProcessIdentifier')
+      call add_key_to_fdb_from_file(key, igrib, 'productionStatusOfProcessedData')
+      call add_key_to_fdb_from_file(key, igrib, 'dateTime')
+      call add_key_to_fdb_from_file(key, igrib, 'typeOfLevel')
+      call add_key_to_fdb_from_file(key, igrib, 'parameterNumber')
+      call add_key_to_fdb_from_file(key, igrib, 'productDefinitionTemplateNumber')
+      call add_key_to_fdb_from_file(key, igrib, 'level', 'integer')
 
 
       ! get the size of the values array

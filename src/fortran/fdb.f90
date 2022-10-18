@@ -223,7 +223,7 @@ MODULE fdb
       END DO
    END SUBROUTINE copy_a2s
    
-   SUBROUTINE add_key(key, igrib, keyname_str, type)  
+   SUBROUTINE add_key_to_fdb_from_file(key, igrib, keyname_str, type)  
       use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
       type(c_ptr), INTENT(INOUT)                  :: key
       character(len=*), INTENT(IN)                :: keyname_str
@@ -243,7 +243,7 @@ MODULE fdb
       call copy_s2a(keyvalue, trim(keyvalue_str))
       call copy_s2a(keyname, trim(keyname_str))
       res = fdb_key_add(key, keyname, keyvalue)
-   END SUBROUTINE add_key
+   END SUBROUTINE add_key_to_fdb_from_file
 
 
    SUBROUTINE convertValues(numStrings, values_str_array, values_array, values_ptr)
