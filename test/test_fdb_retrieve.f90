@@ -40,18 +40,18 @@ program test_fdb_retrieve
 
    ! Create request / query for fdb
    res = fdb_new_request(req)
-   call fdb_request_add_fortran(req, "validityDate", ["20220703"])
-   call fdb_request_add_fortran(req, "validityTime", ["0"])
-   call fdb_request_add_fortran(req, "productionStatusOfProcessedData", ["255"])
-   call fdb_request_add_fortran(req, "productDefinitionTemplateNumber", ["0"])
+   call fdb_request_add_values(req, "validityDate", ["20220703"])
+   call fdb_request_add_values(req, "validityTime", ["0"])
+   call fdb_request_add_values(req, "productionStatusOfProcessedData", ["255"])
+   call fdb_request_add_values(req, "productDefinitionTemplateNumber", ["0"])
    parameterNumber_values(1)='0'
    parameterNumber_values(2)='254'
-   call fdb_request_add_fortran(req, "parameterNumber", parameterNumber_values)
-   call fdb_request_add_fortran(req, "parameterCategory", ['0','1','3'])
-   call fdb_request_add_fortran(req, "discipline", ['0','2'])
-   call fdb_request_add_fortran(req, "generatingProcessIdentifier", ["153"])
-   call fdb_request_add_fortran(req, "typeOfFirstFixedSurface", ["sfc"])
-   call fdb_request_add_fortran(req, "level", ["0"])
+   call fdb_request_add_values(req, "parameterNumber", parameterNumber_values)
+   call fdb_request_add_values(req, "parameterCategory", ['0','1','3'])
+   call fdb_request_add_values(req, "discipline", ['0','2'])
+   call fdb_request_add_values(req, "generatingProcessIdentifier", ["153"])
+   call fdb_request_add_values(req, "typeOfFirstFixedSurface", ["sfc"])
+   call fdb_request_add_values(req, "level", ["0"])
 
    ! Iterate through messages with listiterator, 
    ! to get maximum length of a GRIB message in the returned data.

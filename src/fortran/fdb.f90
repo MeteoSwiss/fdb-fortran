@@ -291,7 +291,7 @@ MODULE fdb
    END SUBROUTINE
 
 
-   SUBROUTINE fdb_request_add_fortran(req, keyname_str, values_str_array)
+   SUBROUTINE fdb_request_add_values(req, keyname_str, values_str_array)
       use, intrinsic :: iso_c_binding 
       type(c_ptr), INTENT(IN)                        :: req
       CHARACTER(len=*), INTENT(IN)                   :: keyname_str
