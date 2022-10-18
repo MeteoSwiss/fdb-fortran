@@ -222,32 +222,6 @@ MODULE fdb
          s(i:i) = 'z' ! a(i) ! FAILS HERE
       END DO
    END SUBROUTINE copy_a2s
-
-   FUNCTION index_chararray(a,s) result(idx)  
-      CHARACTER,INTENT(IN) :: a(:)
-      CHARACTER(len=*), INTENT(IN)  :: s
-      CHARACTER :: s_a(LEN(s))
-      INTEGER  :: i, j, idx
-      logical :: equal
-      DO i = 1,LEN(s)
-         s_a(i) = s(i:i)
-      END DO
-      DO i = 1,SIZE(a)-SIZE(s_a)
-         DO j = 1, SIZE(s_a)
-            equal = a(i+j-1) == s_a(j)
-            IF (.not. equal) THEN
-               exit
-            END IF
-         END DO
-         IF (equal) THEN
-            idx=i
-            exit
-         END if
-      END DO
-      IF (.not. equal) THEN
-         idx=0
-      END IF
-   END FUNCTION index_chararray
    
    SUBROUTINE add_key(key, igrib, keyname_str, type)  
       use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
