@@ -3,6 +3,8 @@ MODULE fdb
    use eccodes
    implicit none
 
+   integer :: MAX_CHAR = 128
+
    interface
       integer(kind=c_int) function fdb_key_add(key, param, value) bind(C, name='fdb_key_add')
          use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
@@ -183,11 +185,11 @@ MODULE fdb
    CONTAINS
    SUBROUTINE get_value_of_key(igrib, keyname, keyvalue_str, keyvalue_int)
       character(len=*), INTENT(IN)         :: keyname
-      character(len=128), INTENT(OUT)    :: keyvalue_str
+      character(len=MAX_CHAR), INTENT(OUT) :: keyvalue_str
       integer, INTENT(INOUT), OPTIONAL     :: keyvalue_int
-      integer, INTENT(IN)                 :: igrib
-      integer                             :: res
-      integer                             :: is_missing
+      integer, INTENT(IN)                  :: igrib
+      integer                              :: res
+      integer                              :: is_missing
       call codes_is_missing(igrib, trim(keyname), is_missing);
       if (is_missing /= 1) then
          ! key value is not missing so get values
@@ -229,9 +231,9 @@ MODULE fdb
       character(len=*), INTENT(IN)                :: keyname_str
       character(len=*), INTENT(IN), OPTIONAL      :: type
       ! Local vars
-      character(kind=c_char), dimension(128)      :: keyname
-      character(kind=c_char), dimension(128)      :: keyvalue
-      character(len=128)                          :: keyvalue_str
+      character(kind=c_char), dimension(MAX_CHAR) :: keyname
+      character(kind=c_char), dimension(MAX_CHAR) :: keyvalue
+      character(len=MAX_CHAR)                     :: keyvalue_str
       integer                                     :: keyvalue_int
       integer, INTENT(IN)                         :: igrib
       integer                                     :: res
@@ -250,16 +252,16 @@ MODULE fdb
    ! This is required since the interface fdb_request_add expects this data format. 
    SUBROUTINE convertValues(numStrings, values_str_array, values_array, values_ptr)
       use, intrinsic :: iso_c_binding 
-      integer(kind=c_int) , INTENT(IN)              :: numStrings
-      CHARACTER(len=*), INTENT(IN) :: values_str_array(numStrings)
-      CHARACTER(kind=c_char), TARGET , INTENT(INOUT)  :: values_array(32,numStrings)
-      TYPE(C_PTR), INTENT(OUT)                 :: values_ptr(numStrings)
-      integer                                  :: ns, i
-      character(len=32)                        :: value_str
-      character(kind=c_char), dimension(32)    :: value
-      character(len=5)                         :: ns_str
+      integer(kind=c_int) , INTENT(IN)                :: numStrings
+      CHARACTER(len=*), INTENT(IN)                    :: values_str_array(numStrings)
+      CHARACTER(kind=c_char), TARGET , INTENT(INOUT)  :: values_array(MAX_CHAR,numStrings)
+      TYPE(C_PTR), INTENT(OUT)                        :: values_ptr(numStrings)
+      integer                                         :: ns, i
+      character(len=MAX_CHAR)                         :: value_str
+      character(kind=c_char), dimension(MAX_CHAR)     :: value
+      character(len=5)                                :: ns_str
       DO ns = 1, numStrings
-         ! check that values_str_array(ns) is not greater in size than 32, or hard coded value.
+         ! check that values_str_array(ns) is not greater in size than MAX_CHAR, or hard coded value.
          call copy_s2a(values_array(:,ns), trim(values_str_array(ns)))
          values_ptr(ns) = C_LOC(values_array(:,ns))
       END DO
@@ -274,11 +276,11 @@ MODULE fdb
       CHARACTER(kind=c_char), TARGET, ALLOCATABLE    :: values_array(:,:)
       TYPE(C_PTR)                                    :: values_ptr(SIZE(values_str_array))
       integer(kind=c_int)                            :: numStrings
-      character(kind=c_char), dimension(128)         :: keyname
+      character(kind=c_char), dimension(MAX_CHAR)    :: keyname
       integer(kind=c_int)                            :: res
 
       numStrings=SIZE(values_str_array)
-      ALLOCATE(values_array(32,numStrings))
+      ALLOCATE(values_array(MAX_CHAR,numStrings))
       call convertValues(numStrings, values_str_array, values_array, values_ptr)
       call copy_s2a(keyname, trim(keyname_str))
       res = fdb_request_add(req, keyname, values_ptr, numStrings);
