@@ -283,7 +283,7 @@ MODULE fdb
       character(kind=c_char), dimension(32)    :: value
       character(len=5)                         :: ns_str
       DO ns = 1, numStrings
-         ! cehck that values_str_array(ns) is not greater in size than 32, or hard coded value.
+         ! check that values_str_array(ns) is not greater in size than 32, or hard coded value.
          call copy_s2a(values_array(:,ns), trim(values_str_array(ns)))
          values_ptr(ns) = C_LOC(values_array(:,ns))
       END DO
