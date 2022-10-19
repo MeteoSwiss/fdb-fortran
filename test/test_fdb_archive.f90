@@ -17,7 +17,7 @@ program test_fdb_archive
 
    res = fdb_new_key(key)
 
-   call codes_open_file(ifile, '/home/vcherkas/fdb-poc/build/fdb/fdb-fortran/lfff00000000c', open_mode)
+   call codes_open_file(ifile, '/home/vcherkas/dev/fdb-fortran/lfff00000000c', open_mode)
 
    call codes_grib_new_from_file(ifile, igrib, iret)
 
@@ -27,12 +27,14 @@ program test_fdb_archive
 
       call add_key_to_fdb_from_file(key, igrib, 'generatingProcessIdentifier')
       call add_key_to_fdb_from_file(key, igrib, 'productionStatusOfProcessedData')
-      call add_key_to_fdb_from_file(key, igrib, 'dateTime')
-      call add_key_to_fdb_from_file(key, igrib, 'typeOfLevel')
+      call add_key_to_fdb_from_file(key, igrib, 'validityDate')
+      call add_key_to_fdb_from_file(key, igrib, 'validityTime')
       call add_key_to_fdb_from_file(key, igrib, 'parameterNumber')
       call add_key_to_fdb_from_file(key, igrib, 'productDefinitionTemplateNumber')
       call add_key_to_fdb_from_file(key, igrib, 'level', 'integer')
-
+      call add_key_to_fdb_from_file(key, igrib, 'discipline')
+      call add_key_to_fdb_from_file(key, igrib, 'parameterCategory')
+      call add_key_to_fdb_from_file(key, igrib, 'typeOfFirstFixedSurface')
 
       ! get the size of the values array
       call codes_get_size(igrib, 'values', numberOfValues)
