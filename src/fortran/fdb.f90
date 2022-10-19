@@ -206,25 +206,30 @@ MODULE fdb
       end if
    END SUBROUTINE
 
-   SUBROUTINE copy_s2a(a,s)   ! copy s(1:Clen(s)) to char array
+   SUBROUTINE copy_s2a(a,s,status)   ! copy s(1:Clen(s)) to char array
       CHARACTER(*),INTENT(IN) :: s
-      CHARACTER :: a(LEN(s)+1)
+      CHARACTER, INTENT(OUT) :: a(:)
+      INTEGER, INTENT(OUT) :: status
       INTEGER :: i
+      status=0
+      IF (LEN(s) > SIZE(a)) THEN
+         status = 1
+      END IF
       DO i = 1,LEN(s)
          a(i) = s(i:i)
       END DO
       a(LEN(s)+1) = char(0)
    END SUBROUTINE copy_s2a
 
-   SUBROUTINE copy_a2s(a,s)  
-      CHARACTER,INTENT(IN) :: a(:)
-      CHARACTER(len=*),INTENT(INOUT)  :: s
-      INTEGER :: i
-      DO i = 1,SIZE(a)
-         s(i:i) = 'z' ! a(i) ! FAILS HERE
-      END DO
-   END SUBROUTINE copy_a2s
-   
+   SUBROUTINE copy_s2a_exit(a,s,caller)
+      CHARACTER(*),INTENT(IN) :: s, caller
+      CHARACTER, INTENT(IN) :: a(:)
+      WRITE(*,*) caller,': String ', s, ' of length', LEN(s), &
+      & ' is greater than the size of character &
+      & array it is being assigned to:', SIZE(a)
+      call EXIT(1)
+   END SUBROUTINE copy_s2a_exit
+
    SUBROUTINE add_key_to_fdb_from_file(key, igrib, keyname_str, type)  
       use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
       type(c_ptr), INTENT(INOUT)                  :: key
@@ -236,14 +241,20 @@ MODULE fdb
       character(len=MAX_CHAR)                     :: keyvalue_str
       integer                                     :: keyvalue_int
       integer, INTENT(IN)                         :: igrib
-      integer                                     :: res
+      integer                                     :: res, status
       if (type == 'integer') then
          call get_value_of_key(igrib, trim(keyname_str), keyvalue_str, keyvalue_int) 
       else
          call get_value_of_key(igrib, trim(keyname_str), keyvalue_str) 
       end if
-      call copy_s2a(keyvalue, trim(keyvalue_str))
-      call copy_s2a(keyname, trim(keyname_str))
+      call copy_s2a(keyvalue, trim(keyvalue_str),status)
+      if (status /= 0) then
+         call copy_s2a_exit(keyvalue, trim(keyvalue_str),'add_key_to_fdb_from_file')
+      endif
+      call copy_s2a(keyname, trim(keyname_str),status)
+      if (status /= 0) then
+         call copy_s2a_exit(keyname, trim(keyname_str),'add_key_to_fdb_from_file')
+      endif
       res = fdb_key_add(key, keyname, keyvalue)
    END SUBROUTINE add_key_to_fdb_from_file
 
@@ -256,13 +267,15 @@ MODULE fdb
       CHARACTER(len=*), INTENT(IN)                    :: values_str_array(numStrings)
       CHARACTER(kind=c_char), TARGET , INTENT(INOUT)  :: values_array(MAX_CHAR,numStrings)
       TYPE(C_PTR), INTENT(OUT)                        :: values_ptr(numStrings)
-      integer                                         :: ns, i
+      integer                                         :: ns, i, status
       character(len=MAX_CHAR)                         :: value_str
       character(kind=c_char), dimension(MAX_CHAR)     :: value
       character(len=5)                                :: ns_str
       DO ns = 1, numStrings
-         ! check that values_str_array(ns) is not greater in size than MAX_CHAR, or hard coded value.
-         call copy_s2a(values_array(:,ns), trim(values_str_array(ns)))
+         call copy_s2a(values_array(:,ns), trim(values_str_array(ns)),status)
+         if (status /= 0) then
+            call copy_s2a_exit(values_array(:,ns), trim(values_str_array(ns)),'convertValues')
+         endif
          values_ptr(ns) = C_LOC(values_array(:,ns))
       END DO
    END SUBROUTINE
@@ -277,12 +290,15 @@ MODULE fdb
       TYPE(C_PTR)                                    :: values_ptr(SIZE(values_str_array))
       integer(kind=c_int)                            :: numStrings
       character(kind=c_char), dimension(MAX_CHAR)    :: keyname
-      integer(kind=c_int)                            :: res
+      integer(kind=c_int)                            :: res, status
 
       numStrings=SIZE(values_str_array)
       ALLOCATE(values_array(MAX_CHAR,numStrings))
       call convertValues(numStrings, values_str_array, values_array, values_ptr)
-      call copy_s2a(keyname, trim(keyname_str))
+      call copy_s2a(keyname, trim(keyname_str),status)
+      if (status /= 0) then
+         call copy_s2a_exit(keyname, trim(keyname_str),'fdb_request_add_values')
+      endif
       res = fdb_request_add(req, keyname, values_ptr, numStrings);
       DEALLOCATE(values_array)
    END SUBROUTINE
