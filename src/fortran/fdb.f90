@@ -183,17 +183,18 @@ MODULE fdb
    end interface
 
    CONTAINS
-   SUBROUTINE get_value_of_key(igrib, keyname, keyvalue_str, keyvalue_int)
+   SUBROUTINE get_value_of_key(igrib, keyname, keyvalue_str, type)
       character(len=*), INTENT(IN)         :: keyname
       character(len=MAX_CHAR), INTENT(OUT) :: keyvalue_str
-      integer, INTENT(INOUT), OPTIONAL     :: keyvalue_int
+      character(len=*), INTENT(IN), OPTIONAL  :: type
       integer, INTENT(IN)                  :: igrib
+      integer                              :: keyvalue_int
       integer                              :: res
       integer                              :: is_missing
       call codes_is_missing(igrib, trim(keyname), is_missing);
       if (is_missing /= 1) then
          ! key value is not missing so get values
-         if (present(keyvalue_int)) then
+         if (type == 'integer') then
             call codes_get_int(igrib, keyname, keyvalue_int)
             write (keyvalue_str, "(I4)") keyvalue_int
             keyvalue_str=trim(adjustl(keyvalue_str))
@@ -242,11 +243,7 @@ MODULE fdb
       integer                                     :: keyvalue_int
       integer, INTENT(IN)                         :: igrib
       integer                                     :: res, status
-      if (type == 'integer') then
-         call get_value_of_key(igrib, trim(keyname_str), keyvalue_str, keyvalue_int) 
-      else
-         call get_value_of_key(igrib, trim(keyname_str), keyvalue_str) 
-      end if
+      call get_value_of_key(igrib, trim(keyname_str), keyvalue_str, type) 
       call copy_s2a(keyvalue, trim(keyvalue_str),status)
       if (status /= 0) then
          call copy_s2a_exit(keyvalue, trim(keyvalue_str),'add_key_to_fdb_from_file')
