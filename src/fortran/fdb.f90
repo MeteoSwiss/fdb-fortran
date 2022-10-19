@@ -56,7 +56,7 @@ MODULE fdb
          use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char
          type(c_ptr), intent(in), value :: req
          character(kind=c_char, len=1), dimension(*), INTENT(in) :: param
-         type(c_ptr), intent(in) :: values(0:*)
+         type(c_ptr), intent(in) :: values(*)
          integer(kind=c_int), INTENT(in), value :: numValues
       end function 
    end interface
