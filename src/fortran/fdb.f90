@@ -182,6 +182,15 @@ MODULE fdb
       end function fdb_listiterator_attrs
    end interface
 
+   interface
+      integer(kind=c_int) function fdb_inspect(fdb_handle, req, it) bind(C,name='fdb_inspect')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_bool, c_int
+         type(c_ptr), value   :: fdb_handle
+         type(c_ptr), value   :: req 
+         type(c_ptr)       :: it
+      end function fdb_inspect
+   end interface
+
    CONTAINS
    SUBROUTINE get_value_of_key(igrib, keyname, keyvalue_str, type)
       character(len=*), INTENT(IN)         :: keyname
