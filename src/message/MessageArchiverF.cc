@@ -240,8 +240,8 @@ namespace fdbf
                 count++;
                 progress(total_size);
 
-                flush();
             }
+            flush();
         }
         catch (...)
         {
