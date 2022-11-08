@@ -278,9 +278,9 @@ MODULE fdb
       character(kind=c_char), dimension(MAX_CHAR)     :: value
       character(len=5)                                :: ns_str
       DO ns = 1, numStrings
-         call copy_s2a(values_array(:,ns), trim(values_str_array(ns)),status)
+         call copy_s2a(values_array(:,ns), trim(adjustl(values_str_array(ns))),status)
          if (status /= 0) then
-            call copy_s2a_exit(values_array(:,ns), trim(values_str_array(ns)),'convertValues')
+            call copy_s2a_exit(values_array(:,ns), trim(adjustl(values_str_array(ns))),'convertValues')
          endif
          values_ptr(ns) = C_LOC(values_array(:,ns))
       END DO
