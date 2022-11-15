@@ -16,9 +16,15 @@ endforeach()
 set( fdb_message_srcs
    message/MessageArchiverF.cc
    message/MessageArchiverF.h
+   message/OpenFile_C.cc
+   message/OpenFile_C.h
 )
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 add_library(fdb_message_lib ${fdb_message_srcs})
+target_compile_features(fdb_message_lib PRIVATE cxx_range_for)
 target_include_directories(fdb_message_lib PUBLIC .)
 target_link_libraries(fdb_message_lib eckit)
 target_link_libraries(fdb_message_lib fdb5)
@@ -39,6 +45,7 @@ FortranCInterface_VERIFY(CXX)
 add_library(fdbf ${fdb_fortran_srcs} )
 target_include_directories(fdbf PUBLIC ${CMAKE_Fortran_MODULE_DIRECTORY})
 target_link_libraries(fdbf PUBLIC fdb5)
+target_link_libraries(fdbf PUBLIC eckit)
 install(TARGETS fdbf
 DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 )

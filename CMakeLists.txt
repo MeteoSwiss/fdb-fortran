@@ -3,6 +3,8 @@ project(fdb-fortran
   LANGUAGES C CXX Fortran
   VERSION 0.1)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
 
 include(CMakePrintHelpers)
@@ -29,6 +31,7 @@ install(TARGETS test_fdb_archive
 add_executable(test_fdb_retrieve test/test_fdb_retrieve.f90)
 target_link_libraries(test_fdb_retrieve fdbf eccodes_f90)
 target_include_directories(test_fdb_retrieve PUBLIC ${CMAKE_Fortran_MODULE_DIRECTORY})
+target_link_libraries(test_fdb_retrieve fdb_message_lib)
 install(TARGETS test_fdb_retrieve
     DESTINATION ${CMAKE_INSTALL_PREFIX}
     )

@@ -7,13 +7,14 @@ program test_fdb_retrieve
    type(c_ptr)                               :: req ! Request 
    type(c_ptr)                               :: dr ! DataReader
    type(c_ptr)                               :: it ! ListIterator
+   type(c_ptr)                               :: file ! FILE (eckit)
 
-   integer(c_long)                           :: size, read, messageLength, marker
+   integer(c_long)                           :: size, read, messageLength, marker, counter
 
    integer                                   :: i, ifile, igrib, iret
    character(len=10)                         :: open_mode = 'r'
 
-   character(kind=c_char, len=1), dimension(:), allocatable  :: buf
+   character(kind=c_char, len=1), dimension(:), allocatable  :: buf_message,buf_file
    character(kind=c_char, len=1), dimension(:), allocatable  :: message
 
    CHARACTER(len=32)                         :: date_values(1)
@@ -27,8 +28,12 @@ program test_fdb_retrieve
    real, dimension(:), target, allocatable   :: values
 
    character(kind=c_char, len=1), dimension(100)  :: uri
+   character(kind=c_char, len=1), dimension(5)  :: mode
    integer(kind=c_int)                            :: off, len, max_len
    logical(kind=c_bool)                           :: duplicates = .false.
+   logical(kind=c_bool)                           :: delete_on_close = .true.
+   logical(kind=c_bool)                           :: false = .false.
+   logical(kind=c_bool)                           :: true = .true.
 
    integer :: idx_a, idx_b, next_message_idx, next_grib
    ! grib api error messages
@@ -40,8 +45,9 @@ program test_fdb_retrieve
 
    ! Create request / query for fdb
    res = fdb_new_request(req)
-   call fdb_request_add_values(req, "validityDate", ["20220703"])
-   call fdb_request_add_values(req, "validityTime", ["0"])
+   call fdb_request_add_values(req, "dataDate", ["20220703"])
+   call fdb_request_add_values(req, "dataTime", ["0000"])
+   call fdb_request_add_values(req, "endStep", ["3"])
    call fdb_request_add_values(req, "productionStatusOfProcessedData", ["255"])
    call fdb_request_add_values(req, "productDefinitionTemplateNumber", ["0"])
    parameterNumber_values(1)='0'
@@ -60,6 +66,7 @@ program test_fdb_retrieve
    err = fdb_listiterator_next(it)
 
    do while(err == 0) 
+      max_len=0
       res = fdb_listiterator_attrs(it, uri, off, len);
       write (*, *) 'len =', len, 'off =', off
 
@@ -70,33 +77,58 @@ program test_fdb_retrieve
       end if
    end do
 
-   allocate(buf(max_len))
 
    res = fdb_new_datareader(dr);
    res = fdb_retrieve(fdb_handle, req, dr)
    res = fdb_datareader_open(dr, size)
    write (*, *) 'size of total data =', size
+   write (*, *) 'max_len =', max_len
+
+   allocate(buf_message(max_len)) ! max_len
+   allocate(buf_file(max_len)) ! max_len
 
    res = fdb_datareader_tell(dr, read);
    write(*,*) 'read= ', read
-
+   counter=read
    ! Iterate through messages and read data via eccodes
    do while(read .LT. size)
+      ! ! Find length of current GRIB message
+      ! marker = 2000
+      ! res = fdb_datareader_read(dr, buf, marker, read)
+      ! call codes_new_from_message(msgid, buf, status)
+      ! call grib_get(msgid,'totalLength', messageLength, iret)
+      ! call grib_check(iret,gribFunction,gribErrorMsg)
+      ! write (*, *) 'LENGTH OF MESSAGE (GRIB): ', messageLength
+      ! ! Put reader back to the start of the message
+      ! res = fdb_datareader_skip(dr, -marker)
 
-      ! Find length of current GRIB message
-      marker = 2000
-      res = fdb_datareader_read(dr, buf, marker, read)
-      call codes_new_from_message(msgid, buf, status)
-      call grib_get(msgid,'totalLength', messageLength, iret)
-      call grib_check(iret,gribFunction,gribErrorMsg)
+      ! call copy_s2a(mode, 'r', res)
+      res = dr_openf(dr, delete_on_close, file)
+      write (*, *) 'FILE: ', file
+   
+      res = fdb_datareader_tell(dr, read)
+      write(*,*) 'read after dr_openf= ', read
+
+
+      res = wmo_read_grib_from_file(file, buf_file, messageLength)
       write (*, *) 'LENGTH OF MESSAGE (GRIB): ', messageLength
-      ! Put reader back to the start of the message
-      res = fdb_datareader_skip(dr, -marker)
-   
-      ! Read whole GRIB message
-      res = fdb_datareader_read(dr, buf, messageLength, read)
-   
-      call codes_new_from_message(msgid, buf, status)
+      write (*, *) 'buf_file: ', buf_file(1:10)
+      write (*, *) 'buf_file: ', buf_file(messageLength-10:messageLength)
+
+
+
+      ! Read whole GRIB message      
+      res = fdb_datareader_tell(dr, read)
+      write(*,*) 'read after wmo_read_grib_from_file= ', read
+      res = fdb_datareader_seek(dr, counter)
+      res = fdb_datareader_tell(dr, read)
+
+      res = fdb_datareader_read(dr, buf_message, messageLength, read)
+      write (*, *) 'buf_message: ', buf_message(1:10)
+      write (*, *) 'buf_message: ', buf_message(messageLength-10:messageLength)
+      counter=counter+messageLength
+
+      call codes_new_from_message(msgid, buf_message, status)
       write (*, *) 'status=', status, ', msgid=', msgid
    
       call codes_get(msgid, "parameterNumber", keyvalue_str)
@@ -111,10 +143,13 @@ program test_fdb_retrieve
       res = fdb_datareader_tell(dr, read)
       write(*,*) 'read= ', read
       write (*, *) '******** FINISHED WITH MESSAGE *****************'
+
+      res = fclose(file)
+
    end do
 
-   deallocate(buf)
-
+   deallocate(buf_message)
+   deallocate(buf_file)
    res = fdb_delete_datareader(dr);
    write(*,*) 'end of test_fdb_retrieve'
 end program

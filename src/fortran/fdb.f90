@@ -160,7 +160,7 @@ MODULE fdb
 
    interface
       integer(kind=c_int) function fdb_listiterator_next(it) bind(C,name='fdb_listiterator_next')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_char, c_bool
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr
          type(c_ptr), intent(in), value               :: it
       end function fdb_listiterator_next
    end interface
@@ -184,12 +184,55 @@ MODULE fdb
 
    interface
       integer(kind=c_int) function fdb_inspect(fdb_handle, req, it) bind(C,name='fdb_inspect')
-         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_bool, c_int
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_bool
          type(c_ptr), value   :: fdb_handle
          type(c_ptr), value   :: req 
          type(c_ptr)       :: it
       end function fdb_inspect
    end interface
+
+   ! --------- Interface for ECCODES / FDB ------------ !
+
+   interface 
+      integer(kind=c_int) function wmo_read_grib_from_file(file, buf, len) bind(C,name='wmo_read_grib_from_file')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_int, c_char, c_long
+            type(c_ptr), value  :: file
+            character(kind=c_char, len=1), dimension(*), intent(inout) :: buf
+            integer(kind=c_long), intent(out) :: len
+      end function wmo_read_grib_from_file
+   end interface
+
+   ! --------- Interface for ECKIT / FDB ------------ !
+
+   interface 
+      integer(kind=c_int) function dr_openf(handle, delete_on_close, file) bind(C,name='dr_openf')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_bool, c_char
+            type(c_ptr), value   :: handle
+            logical(kind=c_bool) :: delete_on_close
+            type(c_ptr)   :: file
+      end function dr_openf
+   end interface
+
+   interface 
+      integer(kind=c_int) function dr_openfm(handle, mode, delete_on_close, file) bind(C,name='dr_openfm')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_bool, c_char
+            type(c_ptr), value   :: handle
+            character(kind=c_char, len=1), dimension(*) :: mode 
+            logical(kind=c_bool) :: delete_on_close
+            type(c_ptr)   :: file
+      end function dr_openfm
+   end interface
+
+
+   interface 
+      integer(kind=c_int) function fclose(file) bind(C,name='fclose')
+         use, intrinsic :: iso_c_binding, only : c_int, c_ptr, c_bool, c_char
+            type(c_ptr), value   :: file
+      end function fclose
+   end interface
+
+
+
 
    CONTAINS
    SUBROUTINE get_value_of_key(igrib, keyname, keyvalue_str, type)
