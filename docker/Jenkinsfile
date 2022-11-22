@@ -1,0 +1,110 @@
+pipeline {
+    agent {label 'zuerh407'}
+
+    options {
+
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(artifactDaysToKeepStr: '7', artifactNumToKeepStr: '1',
+                                  daysToKeepStr: '7', numToKeepStr: '1'))
+        timeout(time: 48, unit: 'HOURS')
+    }
+    environment {
+        CR_ALL = 'docker-all-nexus.meteoswiss.ch'
+        SPACK_TAG='dev_PR-12'
+        TAG = "flexpart-poc/fdb"
+        VERSION = sh(
+            returnStdout: true, 
+            script: 'if [ "${BRANCH_NAME}" == "aws" ]; then echo latest; else echo dev_${BRANCH_NAME}; fi'
+            )
+        IMAGE_INTERN = "docker-intern-nexus.meteoswiss.ch/$TAG:$VERSION"
+        IMAGE_PUBLIC = "docker-public-nexus.meteoswiss.ch/$TAG:$VERSION"
+        DOCKER_CONFIG = "$workspace/.docker"
+        HTTP_PROXY = 'http://proxy.meteoswiss.ch:8080/'
+    }
+    stages {
+        stage('Deploy container') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'openshift-nexus',
+                                          passwordVariable: 'NXPASS',
+                                          usernameVariable: 'NXUSER'), 
+                                 usernamePassword(credentialsId: 'github app credential for the meteoswiss-apn github organization',
+                                          usernameVariable: 'GITHUB_APP',
+                                          passwordVariable: 'GITHUB_ACCESS_TOKEN')]) {
+                    sh '''
+                        echo \$NXPASS | docker login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+                        echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+
+                        test -d ctx && rm -rf ctx
+                        mkdir ctx
+
+                        cp docker/Dockerfile docker/entrypoint.sh docker/fdb_schema ctx/
+                        docker build --pull --build-arg TOKEN=$GITHUB_ACCESS_TOKEN --build-arg container_registry=\$CR_ALL --build-arg spack_tag=\$SPACK_TAG -t \$IMAGE_INTERN ctx
+                        docker push \$IMAGE_INTERN
+                        docker tag \$IMAGE_INTERN \$IMAGE_PUBLIC
+                        if [ "${VERSION}" == "latest" ]; then docker push \$IMAGE_PUBLIC; fi
+                    '''
+                }
+            }
+            post {
+                cleanup {
+                    sh """
+                    rm -rf ctx
+                    docker image rm -f \$IMAGE_INTERN
+                    docker image rm -f \$IMAGE_PUBLIC
+                    docker logout docker-intern-nexus.meteoswiss.ch || true
+                    docker logout docker-public-nexus.meteoswiss.ch || true
+                    """
+                }
+            }
+        }
+        stage('Test container') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'openshift-nexus',
+                                          passwordVariable: 'NXPASS',
+                                          usernameVariable: 'NXUSER')]) {
+                    sh '''
+                        echo \$NXPASS | docker login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+                        echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+
+                        docker pull \$IMAGE_INTERN
+                        fdb_schema_dir=$(pwd)/ctx/fdb_schema
+                        output_data_dir=$(pwd)/ctx/output_data
+                        mkdir -p \$output_data_dir
+                        mkdir -p ctx/data && cd ctx/data
+
+                        data_dir=$(pwd)
+                        wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070300
+                        wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070301
+                        wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070302
+                        wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070303
+                        wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070304
+
+                        docker run -v ${data_dir}:/fdb_data_files -v ${output_data_dir}:/fdb_data -v ${fdb_schema_dir}:/scratch/fdb_schema \$IMAGE_INTERN 
+                        [ "$(ls -A ctx/output_data)" ] && ls -A ctx/output_data || (echo "No data found in fdb output folder" && exit 1)
+
+                    '''
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo "Build stage complete"
+        }
+        failure {
+            echo "Build failed"
+            emailext(subject: "${currentBuild.fullDisplayName}: ${currentBuild.currentResult}",
+                     body: """Job '${env.JOB_NAME} #${env.BUILD_NUMBER}': ${env.BUILD_URL}""",
+                     recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']])
+        }
+        success {
+            echo "Build succeeded"
+        }
+        cleanup {
+            sh """
+            rm -rf ctx
+            docker image rm -f \$IMAGE_INTERN
+            """
+        }
+    }
+}
