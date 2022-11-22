@@ -1,0 +1,16 @@
+spack-build-*
+spack-con*
+
+CMakeFiles
+.vscode
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+run.sh
+setup-fdb.sh
+modules
+lfff*
+*.a
+fdbf-write
+test_fdb_archive
+test_fdb_retrieve
