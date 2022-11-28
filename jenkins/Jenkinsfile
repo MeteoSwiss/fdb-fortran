@@ -22,7 +22,7 @@ pipeline {
         HTTP_PROXY = 'http://proxy.meteoswiss.ch:8080/'
     }
     stages {
-        stage('Deploy container') {
+        stage('Deploy image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'openshift-nexus',
                                           passwordVariable: 'NXPASS',
