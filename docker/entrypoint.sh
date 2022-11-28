@@ -22,5 +22,5 @@ fdb-info --all
 for f in /fdb_data_files/*;
     do 
     echo "Archiving $f" ; 
-    fdbf-write --keys=generatingProcessIdentifier,productionStatusOfProcessedData,discipline,parameterCategory,validityDate,validityTime,productDefinitionTemplateNumber,typeOfFirstFixedSurface,level,parameterNumber $f
+    fdbf-write --keys=generatingProcessIdentifier,productionStatusOfProcessedData,discipline,parameterCategory,dataDate,dataTime,endStep,productDefinitionTemplateNumber,typeOfFirstFixedSurface,level,parameterNumber $f
 done
