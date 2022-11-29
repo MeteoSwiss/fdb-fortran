@@ -5,7 +5,7 @@ ARG TOKEN
 ENV TOKEN=$TOKEN \
     SPACK_BRANCH=fdb_v0.18.1
 
-RUN spack spec fdb-fortran ^fdb@master ^eckit@1.20.2: ~mpi ^eccodes@2.19.0 jp2k=none +fortran +build_shared_libs ^hdf5 ~mpi
+RUN spack spec fdb-fortran ^fdb@inspect ^eckit@1.20.2: ~mpi ^eccodes@2.19.0 jp2k=none +fortran +build_shared_libs ^hdf5 ~mpi
 
 # Prevent docker to cache git clones if the are changes in repo
 ADD https://api.github.com/repos/C2SM/spack-c2sm/git/refs/heads/${SPACK_BRANCH} version_c2sm.json
