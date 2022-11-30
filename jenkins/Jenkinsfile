@@ -14,7 +14,7 @@ pipeline {
         TAG = "flexpart-poc/fdb"
         VERSION = sh(
             returnStdout: true, 
-            script: 'if [ "${BRANCH_NAME}" == "aws" ]; then echo latest; else echo dev_${BRANCH_NAME}; fi'
+            script: 'if [ "${BRANCH_NAME}" == "main" ]; then echo latest; else echo dev_${BRANCH_NAME}; fi'
             )
         IMAGE_INTERN = "docker-intern-nexus.meteoswiss.ch/$TAG:$VERSION"
         IMAGE_PUBLIC = "docker-public-nexus.meteoswiss.ch/$TAG:$VERSION"
