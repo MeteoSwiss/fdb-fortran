@@ -72,6 +72,7 @@ pipeline {
                         output_data_dir=$(pwd)/ctx/output_data
                         mkdir -p \$output_data_dir
                         mkdir -p ctx/data && cd ctx/data
+                        ls -R ctx
 
                         data_dir=$(pwd)
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070300
