@@ -13,9 +13,13 @@ spaces:
   - path: /fdb_data
 EOF
 
-export PATH=$PATH:`cat /root/fdbf_prefix`
-export PATH=$PATH:`cat /root/fdb_prefix`/bin
 export FDB5_CONFIG_FILE=/scratch/fdb_config.yaml
+
+. $SPACK_ROOT/share/spack/setup-env.sh
+spack env activate spack-env
+
+export PATH=$PATH:`spack location -i fdb-fortran`
+export PATH=$PATH:`spack location -i fdb`/bin
 
 fdb-info --all
 
