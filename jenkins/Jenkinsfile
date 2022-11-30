@@ -68,7 +68,7 @@ pipeline {
 
                         docker pull \$IMAGE_INTERN
                         fdb_schema_dir=$(pwd)/ctx/fdb_schema
-                        cp docker/fdb_schema $(fdb_schema_dir)
+                        cp docker/fdb_schema $fdb_schema_dir
                         output_data_dir=$(pwd)/ctx/output_data
                         mkdir -p \$output_data_dir
                         mkdir -p ctx/data && cd ctx/data
