@@ -5,8 +5,6 @@ ARG TOKEN
 ENV TOKEN=$TOKEN \
     SPACK_BRANCH=fdb_v0.18.1
 
-RUN spack spec fdb-fortran ^fdb@inspect ^eckit@1.20.2: ~mpi ^eccodes@2.19.0 jp2k=none +fortran +build_shared_libs ^hdf5 ~mpi
-
 # Prevent docker to cache git clones if the are changes in repo
 ADD https://api.github.com/repos/C2SM/spack-c2sm/git/refs/heads/${SPACK_BRANCH} version_c2sm.json
 RUN git config --global url."https://x-access-token:${TOKEN}@github.com/MeteoSwiss-APN/".insteadOf "git@github.com:MeteoSwiss-APN/"
@@ -22,14 +20,14 @@ RUN apt-get -yqq update \
 
 RUN spack env activate -p spack-env && spack concretize && spack install
 
-RUN echo `spack location -i fdb-fortran`> /root/fdbf_prefix
-RUN echo `spack location -i fdb`> /root/fdb_prefix
-
 FROM ${container_registry}/flexpart-poc/spack:${spack_tag}
+
 RUN mkdir -p /opt/spack/
-COPY --from=intermediate /root/fdbf_prefix /root/fdbf_prefix
-COPY --from=intermediate /root/fdb_prefix /root/fdb_prefix
+RUN mkdir -p /root/c2sm-spack/
+
 COPY --from=intermediate /opt/spack/ /opt/spack/
+COPY --from=intermediate /root/c2sm-spack/ /root/c2sm-spack/
+COPY --from=intermediate /scratch /scratch
 
 RUN mkdir /fdb_data_files
 RUN mkdir /fdb_data
