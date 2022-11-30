@@ -4,7 +4,7 @@
 # configuration settings.
 spack:
   # add package specs to the `specs` list
-  specs: [eccodes@2.19.0 jp2k=none +fortran +build_shared_libs, eckit@1.20.2 ~mpi, hdf5 ~mpi, fdb@inspect, fdb-fortran ^fdb@inspect] 
+  specs: [eccodes@2.19.0 jp2k=none +fortran +build_shared_libs, eckit@1.20.2 ~mpi, hdf5 ~mpi, fdb-fortran ^fdb@inspect] 
   view: false
   concretizer:
     unify: true
