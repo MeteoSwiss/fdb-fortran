@@ -33,7 +33,8 @@ pipeline {
                     sh '''
                         echo \$NXPASS | docker login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
                         echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
-
+                        
+                        chmod -R +w ctx
                         test -d ctx && sudo rm -rf ctx
                         mkdir ctx
 
