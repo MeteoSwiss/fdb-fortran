@@ -1,0 +1,13 @@
+# This is a Spack Environment file.
+#
+# It describes a set of packages to be installed, along with
+# configuration settings.
+spack:
+  # add package specs to the `specs` list
+  specs: [eccodes@2.19.0 jp2k=none +fortran +build_shared_libs, eckit@1.20.2 ~mpi, hdf5 ~mpi, fdb@inspect, flexpart-ifs@fdb+fdb ^eccodes@2.19.0+build_shared_libs+fortran jp2k=none ^eckit@1.20.2 ^fdb@inspect ^hdf5~mpi] 
+  view: false
+  concretizer:
+    unify: true
+  config:
+    install_tree:
+      root: /opt/spack
