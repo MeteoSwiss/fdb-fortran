@@ -4,8 +4,8 @@ pipeline {
     options {
 
         disableConcurrentBuilds()
-        buildDiscarder(logRotator(artifactDaysToKeepStr: '7', artifactNumToKeepStr: '1',
-                                  daysToKeepStr: '7', numToKeepStr: '1'))
+        buildDiscarder(logRotator(artifactDaysToKeepStr: '7', artifactNumToKeepStr: '3',
+                                  daysToKeepStr: '7', numToKeepStr: '3'))
         timeout(time: 48, unit: 'HOURS')
     }
     environment {
@@ -67,12 +67,15 @@ pipeline {
                         echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
 
                         docker pull \$IMAGE_INTERN
-                        fdb_schema_dir=$(pwd)/ctx/fdb_schema
+                        workdir=$(pwd)
+                        context=$workdir/ctx
+                        mkdir -p $context
+                        fdb_schema_dir=$context/fdb_schema
                         cp docker/fdb_schema $fdb_schema_dir
-                        output_data_dir=$(pwd)/ctx/output_data
+                        output_data_dir=$context/output_data
                         mkdir -p \$output_data_dir
-                        mkdir -p ctx/data && cd ctx/data
-                        ls -R ctx
+                        mkdir -p $context/data && cd $context/data
+                        ls -R $context
 
                         data_dir=$(pwd)
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070300
@@ -82,7 +85,7 @@ pipeline {
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070304
 
                         docker run -v ${data_dir}:/fdb_data_files -v ${output_data_dir}:/fdb_data -v ${fdb_schema_dir}:/scratch/fdb_schema \$IMAGE_INTERN 
-                        [ "$(ls -A ctx/output_data)" ] && ls -A ctx/output_data || (echo "No data found in fdb output folder" && exit 1)
+                        [ "$(ls -A $context/output_data)" ] && ls -A $context/output_data || (echo "No data found in fdb output folder" && exit 1)
 
                     '''
                 }
