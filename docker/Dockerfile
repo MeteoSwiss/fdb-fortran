@@ -13,7 +13,7 @@ RUN git config --global url."https://x-access-token:${TOKEN}@github.com/MeteoSwi
 RUN git config --global url."https://x-access-token:${TOKEN}@github.com/MeteoSwiss-APN/".insteadOf "https://github.com/MeteoSwiss-APN/"
 
 RUN spack config add "config:install_tree:root: /opt/spack"
-RUN spack -d install fdb-fortran ^fdb@master ^eckit@1.20.2: ~mpi ^eccodes@2.19.0 jp2k=none +fortran +build_shared_libs ^hdf5 ~mpi
+RUN spack -d install fdb-fortran ^fdb@inspect ^eckit@1.20.2: ~mpi ^eccodes@2.19.0 jp2k=none +fortran +build_shared_libs ^hdf5 ~mpi
 RUN echo `spack location -i fdb-fortran`> /root/fdbf_prefix
 RUN echo `spack location -i fdb`> /root/fdb_prefix
 
