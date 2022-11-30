@@ -34,7 +34,7 @@ pipeline {
                         echo \$NXPASS | docker login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
                         echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
 
-                        test -d ctx && rm -rf ctx
+                        test -d ctx && sudo rm -rf ctx
                         mkdir ctx
 
                         cp docker/Dockerfile docker/entrypoint.sh docker/fdb_schema docker/spack.yaml ctx/
