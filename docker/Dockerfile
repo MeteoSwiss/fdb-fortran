@@ -12,8 +12,16 @@ ADD https://api.github.com/repos/C2SM/spack-c2sm/git/refs/heads/${SPACK_BRANCH} 
 RUN git config --global url."https://x-access-token:${TOKEN}@github.com/MeteoSwiss-APN/".insteadOf "git@github.com:MeteoSwiss-APN/"
 RUN git config --global url."https://x-access-token:${TOKEN}@github.com/MeteoSwiss-APN/".insteadOf "https://github.com/MeteoSwiss-APN/"
 
-RUN spack config add "config:install_tree:root: /opt/spack"
-RUN spack -d install fdb-fortran ^fdb@inspect ^eckit@1.20.2: ~mpi ^eccodes@2.19.0 jp2k=none +fortran +build_shared_libs ^hdf5 ~mpi
+RUN mkdir -p /scratch/spack-env/ 
+COPY spack.yaml /scratch/spack-env/spack.yaml
+RUN  spack env create spack-env /scratch/spack-env/spack.yaml
+
+RUN apt-get -yqq update \
+    && apt-get -yqq install --no-install-recommends \
+    zlib1g && spack external find
+
+RUN spack env activate -p spack-env && spack concretize && spack install
+
 RUN echo `spack location -i fdb-fortran`> /root/fdbf_prefix
 RUN echo `spack location -i fdb`> /root/fdb_prefix
 
