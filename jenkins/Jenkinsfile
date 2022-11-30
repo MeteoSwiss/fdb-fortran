@@ -67,24 +67,22 @@ pipeline {
                         echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
 
                         docker pull \$IMAGE_INTERN
-                        workdir=$(pwd)
-                        context=$workdir/ctx
+                        
+                        context=$(pwd)/ctx
                         mkdir -p $context
-                        fdb_schema_dir=$context/fdb_schema
-                        cp docker/fdb_schema $fdb_schema_dir
-                        output_data_dir=$context/output_data
-                        mkdir -p \$output_data_dir
-                        mkdir -p $context/data && cd $context/data
+                        mkdir -p $context/output_data
+                        mkdir -p $context/data
+                        cp docker/fdb_schema $context/fdb_schema
                         ls -R $context
 
-                        data_dir=$(pwd)
+                        cd $context/data
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070300
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070301
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070302
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070303
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070304
 
-                        docker run -v ${data_dir}:/fdb_data_files -v ${output_data_dir}:/fdb_data -v ${fdb_schema_dir}:/scratch/fdb_schema \$IMAGE_INTERN 
+                        docker run -v $context/data:/fdb_data_files -v $context/output_data:/fdb_data -v $context/fdb_schema:/scratch/fdb_schema \$IMAGE_INTERN 
                         [ "$(ls -A $context/output_data)" ] && ls -A $context/output_data || (echo "No data found in fdb output folder" && exit 1)
 
                     '''
@@ -107,7 +105,7 @@ pipeline {
         }
         cleanup {
             sh """
-            rm -rf ctx
+            sudo rm -rf ctx
             docker image rm -f \$IMAGE_INTERN
             """
         }
