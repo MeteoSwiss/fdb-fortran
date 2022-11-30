@@ -11,7 +11,7 @@ RUN git config --global url."https://x-access-token:${TOKEN}@github.com/MeteoSwi
 RUN git config --global url."https://x-access-token:${TOKEN}@github.com/MeteoSwiss-APN/".insteadOf "https://github.com/MeteoSwiss-APN/"
 
 RUN mkdir -p /scratch/spack-env/ 
-COPY docker/spack.yaml /scratch/spack-env/spack.yaml
+COPY spack.yaml /scratch/spack-env/spack.yaml
 RUN  spack env create spack-env /scratch/spack-env/spack.yaml
 
 RUN apt-get -yqq update \
