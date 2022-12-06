@@ -35,7 +35,7 @@ pipeline {
                         echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
                         
                         pwd && ls
-                        test -d ctx && sudo rm -rf ctx
+                        test -d ctx && rm -rf ctx
                         mkdir ctx
 
                         cp docker/Dockerfile docker/entrypoint.sh docker/fdb_schema docker/spack.yaml ctx/
@@ -83,7 +83,7 @@ pipeline {
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070303
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070304
 
-                        docker run -v $context/data:/fdb_data_files -v $context/output_data:/fdb_data -v $context/fdb_schema:/scratch/fdb_schema \$IMAGE_INTERN 
+                        docker run --rm --user=$(id -u):$(id -g) -v $context/data:/fdb_data_files -v $context/output_data:/fdb_data -v $context/fdb_schema:/scratch/fdb_schema \$IMAGE_INTERN 
                         [ "$(ls -A $context/output_data)" ] && ls -A $context/output_data || (echo "No data found in fdb output folder" && exit 1)
 
                     '''
