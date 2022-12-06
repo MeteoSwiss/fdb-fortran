@@ -1,6 +1,5 @@
 ARG container_registry
-ARG spack_tag=dev_flexpart-fdb
-FROM ${container_registry}/flexpart-poc/spack:${spack_tag} as intermediate
+FROM ${container_registry}/flexpart-poc/spack-dependencies:latest as intermediate
 ARG TOKEN
 ENV TOKEN=$TOKEN \
     SPACK_BRANCH=fdb_v0.18.1
@@ -12,13 +11,12 @@ RUN git config --global url."https://x-access-token:${TOKEN}@github.com/MeteoSwi
 
 RUN mkdir -p /scratch/spack-env/ 
 COPY spack.yaml /scratch/spack-env/spack.yaml
-RUN  spack env create spack-env /scratch/spack-env/spack.yaml
 
 RUN apt-get -yqq update \
     && apt-get -yqq install --no-install-recommends \
     zlib1g && spack external find
 
-RUN spack env activate -p spack-env && spack concretize && spack install
+RUN spack env activate -p /scratch/spack-env/ && spack concretize && spack install
 
 FROM ${container_registry}/flexpart-poc/spack:${spack_tag}
 
