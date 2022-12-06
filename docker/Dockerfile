@@ -29,7 +29,10 @@ COPY --from=intermediate /scratch /scratch
 
 RUN mkdir /fdb_data_files
 RUN mkdir /fdb_data
+
+RUN chmod 755 /scratch
 WORKDIR /scratch
+
 COPY entrypoint.sh /scratch/entrypoint.sh 
 
 ENTRYPOINT ["/bin/bash", "/scratch/entrypoint.sh"]
