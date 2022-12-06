@@ -18,7 +18,7 @@ RUN apt-get -yqq update \
 
 RUN spack env activate -p /scratch/spack-env/ && spack concretize && spack install
 
-FROM ${container_registry}/flexpart-poc/spack:${spack_tag}
+FROM ${container_registry}/flexpart-poc/spack-dependencies:latest
 
 RUN mkdir -p /opt/spack/
 RUN mkdir -p /root/c2sm-spack/
