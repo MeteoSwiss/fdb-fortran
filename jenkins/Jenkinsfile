@@ -106,7 +106,7 @@ pipeline {
         }
         cleanup {
             sh """
-            sudo rm -rf ctx
+            rm -rf ctx
             docker image rm -f \$IMAGE_INTERN
             """
         }
