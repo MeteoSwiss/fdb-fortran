@@ -27,10 +27,11 @@ COPY --from=intermediate /opt/spack/ /opt/spack/
 COPY --from=intermediate /root/c2sm-spack/ /root/c2sm-spack/
 COPY --from=intermediate /scratch /scratch
 
+COPY fdb_config.yaml /scratch/fdb_config.yaml
+
 RUN mkdir /fdb_data_files
 RUN mkdir /fdb_data
 
-RUN chmod 755 /scratch
 WORKDIR /scratch
 
 COPY entrypoint.sh /scratch/entrypoint.sh 

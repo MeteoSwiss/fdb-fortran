@@ -2,24 +2,12 @@
 
 set -eux
 
-cat > /scratch/fdb_config.yaml <<EOF
----
-type: local
-engine: toc
-schema: /scratch/fdb_schema
-spaces:
-- handler: Default
-  roots:
-  - path: /fdb_data
-EOF
-
-export FDB5_CONFIG_FILE=/scratch/fdb_config.yaml
-
 . $SPACK_ROOT/share/spack/setup-env.sh
-spack env activate spack-env
+spack env activate /scratch/spack-env/
 
 export PATH=$PATH:`spack location -i fdb-fortran`
 export PATH=$PATH:`spack location -i fdb`/bin
+export FDB5_CONFIG_FILE=/scratch/fdb_config.yaml
 
 fdb-info --all
 
