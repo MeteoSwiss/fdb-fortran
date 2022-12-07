@@ -2,8 +2,8 @@
 
 set -eux
 
-# . $SPACK_ROOT/share/spack/setup-env.sh
-# spack env activate /scratch/spack-env/
+. $SPACK_ROOT/share/spack/setup-env.sh
+spack env activate /scratch/spack-env/
 
 ls -a $SPACK_ROOT/bin
 
