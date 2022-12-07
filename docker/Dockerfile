@@ -23,6 +23,8 @@ FROM ${container_registry}/flexpart-poc/spack-dependencies:latest
 RUN mkdir -p /opt/spack/
 RUN mkdir -p /root/c2sm-spack/
 
+RUN find /root/c2sm-spack/ -type d -exec chmod 755 && find /root/c2sm-spack/ -type f -exec chmod 644 
+
 COPY --from=intermediate /opt/spack/ /opt/spack/
 COPY --from=intermediate /root/c2sm-spack/ /root/c2sm-spack/
 COPY --from=intermediate /scratch /scratch
