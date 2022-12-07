@@ -25,9 +25,9 @@ RUN mkdir -p /root/c2sm-spack/
 
 RUN chmod -R 777 /root/c2sm-spack/
 
-COPY --from=intermediate /opt/spack/ /opt/spack/
-COPY --from=intermediate /root/c2sm-spack/ /root/c2sm-spack/
-COPY --from=intermediate /scratch /scratch
+COPY --chmod=777 --from=intermediate /opt/spack/ /opt/spack/
+COPY --chmod=777 --from=intermediate /root/c2sm-spack/ /root/c2sm-spack/
+COPY --chmod=777 --from=intermediate /scratch /scratch
 
 COPY fdb_config.yaml /scratch/fdb_config.yaml
 

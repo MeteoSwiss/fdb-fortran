@@ -41,7 +41,7 @@ pipeline {
                         mkdir ctx
 
                         cp docker/Dockerfile docker/entrypoint.sh docker/fdb_schema docker/fdb_config.yaml docker/spack.yaml ctx/
-                        docker build --pull --build-arg TOKEN=$GITHUB_ACCESS_TOKEN --build-arg container_registry=\$CR_ALL --build-arg spack_tag=\$SPACK_TAG -t \$IMAGE_INTERN ctx
+                        DOCKER_BUILDKIT=1 docker build --pull --build-arg TOKEN=$GITHUB_ACCESS_TOKEN --build-arg container_registry=\$CR_ALL --build-arg spack_tag=\$SPACK_TAG -t \$IMAGE_INTERN ctx
                         docker push \$IMAGE_INTERN
                         docker tag \$IMAGE_INTERN \$IMAGE_PUBLIC
                         if [ "${VERSION}" == "latest" ]; then docker push \$IMAGE_PUBLIC; fi
