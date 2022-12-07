@@ -85,7 +85,7 @@ pipeline {
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070303
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070304
 
-                        docker run --rm --user=$(id -u):$(id -g) -v $context/data:/fdb_data_files -v $context/output_data:/fdb_data,U -v $context/fdb_schema:/scratch/fdb_schema \$IMAGE_INTERN 
+                        docker run --rm --user=$(id -u) -v $context/data:/fdb_data_files -v $context/output_data:/fdb_data,U -v $context/fdb_schema:/scratch/fdb_schema \$IMAGE_INTERN 
                         [ "$(ls -A $context/output_data)" ] && ls -A $context/output_data || (echo "No data found in fdb output folder" && exit 1)
 
                     '''
