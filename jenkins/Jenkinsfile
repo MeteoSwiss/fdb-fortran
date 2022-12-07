@@ -1,5 +1,5 @@
 pipeline {
-    agent {label 'podman'}
+    agent {label 'zuerh407'}
 
     options {
 
@@ -31,18 +31,18 @@ pipeline {
                                           usernameVariable: 'GITHUB_APP',
                                           passwordVariable: 'GITHUB_ACCESS_TOKEN')]) {
                     sh '''
-                        echo \$NXPASS | podman login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
-                        echo \$NXPASS | podman login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+                        echo \$NXPASS | docker login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+                        echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
                         
                         pwd && ls
                         test -d ctx && rm -rf ctx
                         mkdir ctx
 
                         cp docker/Dockerfile docker/entrypoint.sh docker/fdb_schema docker/fdb_config.yaml docker/spack.yaml ctx/
-                        podman build --format docker --pull --build-arg TOKEN=$GITHUB_ACCESS_TOKEN --build-arg container_registry=\$CR_ALL --build-arg spack_tag=\$SPACK_TAG -t \$IMAGE_INTERN ctx
-                        podman push \$IMAGE_INTERN
-                        podman tag \$IMAGE_INTERN \$IMAGE_PUBLIC
-                        if [ "${VERSION}" == "latest" ]; then podman push \$IMAGE_PUBLIC; fi
+                        docker build --pull --build-arg TOKEN=$GITHUB_ACCESS_TOKEN --build-arg container_registry=\$CR_ALL --build-arg spack_tag=\$SPACK_TAG -t \$IMAGE_INTERN ctx
+                        docker push \$IMAGE_INTERN
+                        docker tag \$IMAGE_INTERN \$IMAGE_PUBLIC
+                        if [ "${VERSION}" == "latest" ]; then docker push \$IMAGE_PUBLIC; fi
                     '''
                 }
             }
@@ -50,10 +50,10 @@ pipeline {
                 cleanup {
                     sh """
                     rm -rf ctx
-                    podman image rm -f \$IMAGE_INTERN
-                    podman image rm -f \$IMAGE_PUBLIC
-                    podman logout docker-intern-nexus.meteoswiss.ch || true
-                    podman logout docker-public-nexus.meteoswiss.ch || true
+                    docker image rm -f \$IMAGE_INTERN
+                    docker image rm -f \$IMAGE_PUBLIC
+                    docker logout docker-intern-nexus.meteoswiss.ch || true
+                    docker logout docker-public-nexus.meteoswiss.ch || true
                     """
                 }
             }
@@ -64,10 +64,10 @@ pipeline {
                                           passwordVariable: 'NXPASS',
                                           usernameVariable: 'NXUSER')]) {
                     sh '''
-                        echo \$NXPASS | podman login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
-                        echo \$NXPASS | podman login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+                        echo \$NXPASS | docker login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+                        echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
 
-                        podman pull \$IMAGE_INTERN
+                        docker pull \$IMAGE_INTERN
                         
                         context=$(pwd)/ctx
                         mkdir -p $context
@@ -83,7 +83,7 @@ pipeline {
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070303
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070304
 
-                        podman run --rm --user=$(id -u):$(id -g) -v $context/data:/fdb_data_files -v $context/output_data:/fdb_data,U -v $context/fdb_schema:/scratch/fdb_schema \$IMAGE_INTERN 
+                        docker run --rm --user=$(id -u):$(id -g) -v $context/data:/fdb_data_files -v $context/output_data:/fdb_data,U -v $context/fdb_schema:/scratch/fdb_schema \$IMAGE_INTERN 
                         [ "$(ls -A $context/output_data)" ] && ls -A $context/output_data || (echo "No data found in fdb output folder" && exit 1)
 
                     '''
@@ -107,7 +107,7 @@ pipeline {
         cleanup {
             sh """
             rm -rf ctx
-            podman image rm -f \$IMAGE_INTERN
+            docker image rm -f \$IMAGE_INTERN
             """
         }
     }
