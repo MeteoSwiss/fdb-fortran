@@ -85,7 +85,7 @@ pipeline {
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070304
 
                         docker run --name fdb-container-test -v $context/data:/fdb_data_files:ro -v $context/fdb_schema:/scratch/fdb_schema \$IMAGE_INTERN
-                        docker cp fdb-container-test:/fdb_data $context/output_data
+                        docker cp fdb-container-test:/fdb_data/* $context/output_data
                         [ "$(ls -A $context/output_data)" ] && ls -A $context/output_data || (echo "No data found in fdb output folder" && exit 1)
 
                     '''
