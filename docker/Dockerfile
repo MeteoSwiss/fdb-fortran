@@ -23,9 +23,9 @@ FROM ${container_registry}/flexpart-poc/spack-dependencies:latest
 RUN mkdir -p /opt/spack/
 RUN mkdir -p /root/c2sm-spack/
 
-COPY --chmod=777 --from=intermediate /opt/spack/ /opt/spack/
+COPY --from=intermediate /opt/spack/ /opt/spack/
 COPY --from=intermediate /root/c2sm-spack/ /root/c2sm-spack/
-COPY --chmod=777 --from=intermediate /scratch /scratch
+COPY --from=intermediate /scratch /scratch
 
 COPY fdb_config.yaml /scratch/fdb_config.yaml
 
