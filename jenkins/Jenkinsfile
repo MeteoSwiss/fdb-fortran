@@ -31,7 +31,8 @@ pipeline {
                                           usernameVariable: 'GITHUB_APP',
                                           passwordVariable: 'GITHUB_ACCESS_TOKEN')]) {
                     sh '''
-                        echo $(id -u):$(id -g)
+                        id -u
+                        id -g
                         echo \$NXPASS | docker login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
                         echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
                         
