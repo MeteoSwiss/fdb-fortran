@@ -72,7 +72,7 @@ pipeline {
                         
                         context=$(pwd)/ctx
                         mkdir -p $context
-                        mkdir -p $context/output_data
+                        mkdir -p $context/fdb_data
                         mkdir -p $context/data
                         cp docker/fdb_schema $context/fdb_schema
                         ls -R $context
@@ -85,8 +85,8 @@ pipeline {
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070304
 
                         docker run --name fdb-container-test -v $context/data:/fdb_data_files:ro -v $context/fdb_schema:/scratch/fdb_schema \$IMAGE_INTERN
-                        docker cp fdb-container-test:/fdb_data/* $context/output_data
-                        [ "$(ls -A $context/output_data)" ] && ls -A $context/output_data || (echo "No data found in fdb output folder" && exit 1)
+                        docker cp fdb-container-test:/fdb_data $context
+                        [ "$(ls -A $context/fdb_data)" ] && ls -A $context/fdb_data || (echo "No data found in fdb output folder" && exit 1)
 
                     '''
                 }
@@ -110,6 +110,7 @@ pipeline {
             sh """
             rm -rf ctx
             docker image rm -f \$IMAGE_INTERN
+            docker rm fdb-container-test
             """
         }
     }
