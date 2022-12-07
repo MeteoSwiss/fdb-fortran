@@ -20,12 +20,13 @@ RUN spack env activate -p /scratch/spack-env/ && spack concretize && spack insta
 
 FROM ${container_registry}/flexpart-poc/spack-dependencies:latest
 
-RUN chmod -R 777 /opt && chmod -R 777 /root
 RUN mkdir -p /opt/spack/ && mkdir -p /root/c2sm-spack/
 
-COPY --chmod=777 --from=intermediate /opt/spack/ /opt/spack/
-COPY --chmod=777 --from=intermediate /root/c2sm-spack/ /root/c2sm-spack/
-COPY --chmod=777 --from=intermediate /scratch /scratch
+COPY --from=intermediate /opt/spack/ /opt/spack/
+COPY --from=intermediate /root/c2sm-spack/ /root/c2sm-spack/
+COPY --from=intermediate /scratch /scratch
+
+RUN chmod -R -v 777 /root
 
 COPY fdb_config.yaml /scratch/fdb_config.yaml
 
