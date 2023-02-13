@@ -1,0 +1,8 @@
+---
+type: local
+engine: toc
+schema: /scratch/fdb_schema
+spaces:
+- handler: Default
+  roots:
+  - path: /fdb_data
