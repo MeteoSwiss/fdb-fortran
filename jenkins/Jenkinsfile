@@ -91,14 +91,14 @@ pipeline {
                     '''
                 }
             }
-        }
-        post {
-            cleanup {
-                sh """
-                    rm -rf ctx
-                    podman image rm -f \$IMAGE_INTERN
-                    podman rm -i fdb-container-test
-                """
+            post {
+                cleanup {
+                    sh """
+                        rm -rf ctx
+                        podman image rm -f \$IMAGE_INTERN
+                        podman rm -i fdb-container-test
+                    """
+                }
             }
         }
     }
