@@ -1,5 +1,5 @@
 pipeline {
-    agent {label 'zuerh407'}
+    agent {label 'podman'}
 
     options {
 
@@ -14,11 +14,12 @@ pipeline {
         TAG = "flexpart-poc/fdb"
         VERSION = sh(
             returnStdout: true, 
-            script: 'if [ "${BRANCH_NAME}" == "main" ]; then echo latest; else echo dev_${BRANCH_NAME}; fi'
+            script: 'if [ "$BRANCH_NAME" = "main" ]; then echo -n latest; else echo -n dev_${BRANCH_NAME}; fi'
             )
         IMAGE_INTERN = "docker-intern-nexus.meteoswiss.ch/$TAG:$VERSION"
         IMAGE_PUBLIC = "docker-public-nexus.meteoswiss.ch/$TAG:$VERSION"
         DOCKER_CONFIG = "$workspace/.docker"
+        REGISTRY_AUTH_FILE = "$workspace/.containers/auth.json"
         HTTP_PROXY = 'http://proxy.meteoswiss.ch:8080/'
     }
     stages {
@@ -31,19 +32,18 @@ pipeline {
                                           usernameVariable: 'GITHUB_APP',
                                           passwordVariable: 'GITHUB_ACCESS_TOKEN')]) {
                     sh '''
-                        docker --version
-                        echo \$NXPASS | docker login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
-                        echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+                        echo \$NXPASS | podman login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+                        echo \$NXPASS | podman login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
                         
                         pwd && ls
                         test -d ctx && rm -rf ctx
                         mkdir ctx
 
                         cp docker/Dockerfile docker/entrypoint.sh docker/fdb_schema docker/fdb_config.yaml docker/spack.yaml ctx/
-                        DOCKER_BUILDKIT=1 docker build --pull --build-arg TOKEN=$GITHUB_ACCESS_TOKEN --build-arg container_registry=\$CR_ALL --build-arg spack_tag=\$SPACK_TAG -t \$IMAGE_INTERN ctx
-                        docker push \$IMAGE_INTERN
-                        docker tag \$IMAGE_INTERN \$IMAGE_PUBLIC
-                        if [ "${VERSION}" == "latest" ]; then docker push \$IMAGE_PUBLIC; fi
+                        podman build --format docker --pull --build-arg TOKEN=$GITHUB_ACCESS_TOKEN --build-arg container_registry=\$CR_ALL --build-arg spack_tag=\$SPACK_TAG -t \$IMAGE_INTERN ctx
+                        podman push \$IMAGE_INTERN
+                        podman tag \$IMAGE_INTERN \$IMAGE_PUBLIC
+                        if [ "$VERSION" = "latest" ]; then podman push \$IMAGE_PUBLIC; fi
                     '''
                 }
             }
@@ -51,10 +51,10 @@ pipeline {
                 cleanup {
                     sh """
                     rm -rf ctx
-                    docker image rm -f \$IMAGE_INTERN
-                    docker image rm -f \$IMAGE_PUBLIC
-                    docker logout docker-intern-nexus.meteoswiss.ch || true
-                    docker logout docker-public-nexus.meteoswiss.ch || true
+                    podman image rm -f \$IMAGE_INTERN
+                    podman image rm -f \$IMAGE_PUBLIC
+                    podman logout docker-intern-nexus.meteoswiss.ch || true
+                    podman logout docker-public-nexus.meteoswiss.ch || true
                     """
                 }
             }
@@ -65,10 +65,10 @@ pipeline {
                                           passwordVariable: 'NXPASS',
                                           usernameVariable: 'NXUSER')]) {
                     sh '''
-                        echo \$NXPASS | docker login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
-                        echo \$NXPASS | docker login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+                        echo \$NXPASS | podman login docker-intern-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
+                        echo \$NXPASS | podman login docker-public-nexus.meteoswiss.ch -u \$NXUSER --password-stdin
 
-                        docker pull \$IMAGE_INTERN
+                        podman pull \$IMAGE_INTERN
                         
                         context=$(pwd)/ctx
                         mkdir -p $context
@@ -84,11 +84,20 @@ pipeline {
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070303
                         wget -q https://nexus.meteoswiss.ch/nexus/repository/app-artifacts-mch/nwp-rzplus/flexpart-poc/flexpart/dispf2022070304
 
-                        docker run --name fdb-container-test -v $context/data:/fdb_data_files:ro -v $context/fdb_schema:/scratch/fdb_schema \$IMAGE_INTERN
-                        docker cp fdb-container-test:/fdb_data $context
+                        podman run --name fdb-container-test -v $context/data:/fdb_data_files:ro -v $context/fdb_schema:/scratch/fdb_schema \$IMAGE_INTERN
+                        podman cp fdb-container-test:/fdb_data $context
                         [ "$(ls -A $context/fdb_data)" ] && ls -A $context/fdb_data || (echo "No data found in fdb output folder" && exit 1)
 
                     '''
+                }
+            }
+            post {
+                cleanup {
+                    sh """
+                        rm -rf ctx
+                        podman image rm -f \$IMAGE_INTERN
+                        podman rm -i fdb-container-test
+                    """
                 }
             }
         }
@@ -105,13 +114,6 @@ pipeline {
         }
         success {
             echo "Build succeeded"
-        }
-        cleanup {
-            sh """
-            rm -rf ctx
-            docker image rm -f \$IMAGE_INTERN
-            docker rm fdb-container-test
-            """
         }
     }
 }
